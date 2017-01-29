@@ -17,11 +17,17 @@ import org.gotti.wurmunlimited.modloader.interfaces.PreInitable;
 import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 import org.lwjgl.opengl.GL11;
 
+import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 import com.wurmonline.client.renderer.gui.HeadsUpDisplay;
+import com.wurmonline.client.renderer.gui.MainMenu;
+import com.wurmonline.client.renderer.gui.WurmComponent;
+import com.wurmonline.client.renderer.gui.WurmEspWindow;
+import com.wurmonline.client.settings.SavePosManager;
+
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -36,11 +42,11 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 	private List<String> modelNames = new ArrayList<String>();
 
-	static boolean players = true;
-	static boolean mobs = false;
-	static boolean specials = true;
-	static boolean dragons = true;
-	static boolean champions = true;
+	public static boolean players = true;
+	public static boolean mobs = false;
+	public static boolean specials = true;
+	public static boolean dragons = true;
+	public static boolean champions = true;
 
 	float[] colorPlayers = {0.0f, 0.0f, 0.0f};
 	float[] colorPlayersEnemy = {0.0f, 0.0f, 0.0f};
@@ -152,6 +158,22 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	
 	@Override
 	public void configure(Properties properties) {
+		players = Boolean.valueOf(
+				properties.getProperty("players", 
+						Boolean.toString(players)));
+		mobs = Boolean.valueOf(
+				properties.getProperty("mobs", 
+						Boolean.toString(mobs)));
+		specials = Boolean.valueOf(
+				properties.getProperty("specials", 
+						Boolean.toString(specials)));
+		dragons = Boolean.valueOf(
+				properties.getProperty("dragons", 
+						Boolean.toString(dragons)));
+		champions = Boolean.valueOf(
+				properties.getProperty("champions", 
+						Boolean.toString(champions)));
+		
 		colorPlayers = colorStringToFloatA(
 				properties.getProperty("colorPlayers", 
 						colorFloatAToString(colorPlayers)));
@@ -197,6 +219,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					() -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
 						hud = (HeadsUpDisplay) proxy;
+						this.initEspWR();
 						return null;
 					});
 
@@ -353,7 +376,32 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		modelNames.add("model.creature");
 		// modelNames.add("");
 	}
-
+	
+	
+	@SuppressWarnings("unchecked")
+	private void initEspWR()
+	{
+		try
+        {
+          World world = (World)ReflectionUtil.getPrivateField(hud, ReflectionUtil.getField(hud.getClass(), "world"));
+          
+          WurmEspWindow wurmEspWindow = new WurmEspWindow(world);
+          
+          MainMenu mainMenu = (MainMenu)ReflectionUtil.getPrivateField(hud, ReflectionUtil.getField(hud.getClass(), "mainMenu"));
+          mainMenu.registerComponent("Esp", wurmEspWindow);
+          
+          List<WurmComponent> components = (List)ReflectionUtil.getPrivateField(hud, ReflectionUtil.getField(hud.getClass(), "components"));
+          components.add(wurmEspWindow);
+          
+          SavePosManager savePosManager = (SavePosManager)ReflectionUtil.getPrivateField(hud, ReflectionUtil.getField(hud.getClass(), "savePosManager"));
+          savePosManager.registerAndRefresh(wurmEspWindow, "wurmespwindow");
+        }
+        catch (IllegalArgumentException|IllegalAccessException|ClassCastException|NoSuchFieldException e)
+        {
+          throw new RuntimeException(e);
+        }
+	}
+	
 	private void renderPickedItem(PickableUnit pickedItem, float[] color) {
 		if (pickedItem == null) {
 			return;
