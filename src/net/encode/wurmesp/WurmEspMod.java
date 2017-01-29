@@ -4,19 +4,20 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Properties;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
+import org.gotti.wurmunlimited.modloader.interfaces.Configurable;
 import org.gotti.wurmunlimited.modloader.interfaces.Initable;
 import org.gotti.wurmunlimited.modloader.interfaces.PreInitable;
 import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 import org.lwjgl.opengl.GL11;
 
 import com.wurmonline.client.renderer.GroundItemData;
-import com.wurmonline.client.renderer.OutlineColors;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
@@ -26,7 +27,7 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
 
-public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
+public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configurable {
 	public static HeadsUpDisplay hud;
 
 	private static Logger logger = Logger.getLogger("WurmEspMod");
@@ -40,6 +41,15 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
 	static boolean specials = true;
 	static boolean dragons = true;
 	static boolean champions = true;
+
+	float[] colorPlayers = {0.0f, 0.0f, 0.0f};
+	float[] colorPlayersEnemy = {0.0f, 0.0f, 0.0f};
+	float[] colorMobs = {0.0f, 0.0f, 0.0f};
+	float[] colorMobsAggro = {0.0f, 0.0f, 0.0f};
+	float[] colorSpecials = {0.0f, 0.0f, 0.0f};
+	float[] colorDragons = {0.0f, 0.0f, 0.0f};
+	float[] colorChampions = {0.0f, 0.0f, 0.0f};
+	
 
 	private enum ESPTYPE {
 		PLAYER, MOB, SPECIAL, DRAGON, CHAMPION
@@ -121,6 +131,52 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
 		return false;
 	}
 
+	private float[] colorStringToFloatA(String color)
+	{
+		String[] colors = color.split(",");
+		float[] colorf = {
+				Float.valueOf(colors[0])/255.0f,
+				Float.valueOf(colors[1])/255.0f,
+				Float.valueOf(colors[2])/255.0f};
+		return colorf;
+	}
+	
+	private String colorFloatAToString(float[] color)
+	{
+		String colors = 
+				String.valueOf(color[0]*255.0f) + "," +
+				String.valueOf(color[1]*255.0f) + "," +
+				String.valueOf(color[2]*255.0f);
+		return colors;
+	}
+	
+	@Override
+	public void configure(Properties properties) {
+		colorPlayers = colorStringToFloatA(
+				properties.getProperty("colorPlayers", 
+						colorFloatAToString(colorPlayers)));
+		colorPlayersEnemy = colorStringToFloatA(
+				properties.getProperty("colorPlayersEnemy", 
+						colorFloatAToString(colorPlayersEnemy)));
+		colorMobs = colorStringToFloatA(
+				properties.getProperty("colorMobs", 
+						colorFloatAToString(colorMobs)));
+		colorMobsAggro = colorStringToFloatA(
+				properties.getProperty("colorMobsAggro", 
+						colorFloatAToString(colorMobsAggro)));
+		colorSpecials = colorStringToFloatA(
+				properties.getProperty("colorSpecials", 
+						colorFloatAToString(colorSpecials)));
+		colorDragons = colorStringToFloatA(
+				properties.getProperty("colorDragons", 
+						colorFloatAToString(colorDragons)));
+		colorChampions = colorStringToFloatA(
+				properties.getProperty("colorChampions", 
+						colorFloatAToString(colorChampions)));
+		
+		logger.log(Level.INFO, "Config loaded");
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public void init() {
@@ -171,7 +227,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
 						if (name.contains("source") || name.contains("treasure")) {
 							pickableUnits.put(new AbstractMap.SimpleEntry<Long, ESPTYPE>(item.getId(), ESPTYPE.SPECIAL),
 									new AbstractMap.SimpleEntry<PickableUnit, float[]>((PickableUnit) proxy,
-											OutlineColors.GM));
+											colorSpecials));
 						}
 						return null;
 					});
@@ -215,14 +271,14 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
 											pickableUnits.put(
 													new AbstractMap.SimpleEntry<Long, ESPTYPE>(id, ESPTYPE.PLAYER),
 													new AbstractMap.SimpleEntry<PickableUnit, float[]>((PickableUnit) proxy,
-															new float[] {1.0f, 0.0f, 0.0f }));
+															colorPlayersEnemy));
 										}
 										else
 										{
 											pickableUnits.put(
 													new AbstractMap.SimpleEntry<Long, ESPTYPE>(id, ESPTYPE.PLAYER),
 													new AbstractMap.SimpleEntry<PickableUnit, float[]>((PickableUnit) proxy,
-															new float[] { 170.0f / 255.0f, 1.0f, 0.0f }));
+															colorPlayers));
 										}
 									}
 								} else if (modelName.contains("dragon") || modelName.contains("drake")) {
@@ -230,7 +286,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
 
 									pickableUnits.put(new AbstractMap.SimpleEntry<Long, ESPTYPE>(id, ESPTYPE.DRAGON),
 											new AbstractMap.SimpleEntry<PickableUnit, float[]>((PickableUnit) proxy,
-													OutlineColors.GM));
+													colorDragons));
 								} else {
 									if(champions && hoverName.contains("champion"))
 									{
@@ -238,7 +294,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
 
 										pickableUnits.put(new AbstractMap.SimpleEntry<Long, ESPTYPE>(id, ESPTYPE.CHAMPION),
 												new AbstractMap.SimpleEntry<PickableUnit, float[]>((PickableUnit) proxy,
-														new float[] { 1.0f, 0.0f, 1.0f }));
+														colorChampions));
 									}
 									else
 									{
@@ -248,7 +304,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
 
 											pickableUnits.put(new AbstractMap.SimpleEntry<Long, ESPTYPE>(id, ESPTYPE.MOB),
 													new AbstractMap.SimpleEntry<PickableUnit, float[]>((PickableUnit) proxy,
-															new float[] { 1.0f, 0.0f, 0.0f }));
+															colorMobsAggro));
 										}
 										else
 										{
@@ -256,7 +312,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable {
 
 											pickableUnits.put(new AbstractMap.SimpleEntry<Long, ESPTYPE>(id, ESPTYPE.MOB),
 													new AbstractMap.SimpleEntry<PickableUnit, float[]>((PickableUnit) proxy,
-															new float[] { 180.f / 255.0f, 1.0f,  0.0f }));
+															colorMobs));
 										}
 									}
 								}
