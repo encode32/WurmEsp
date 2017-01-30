@@ -1,4 +1,4 @@
-[![N|Solid](http://i.imgur.com/E1jrz0S.jpg)](http://i.imgur.com/E1jrz0S.jpg)
+[![N|Solid](http://i.imgur.com/2384sQB.jpg)](http://i.imgur.com/2384sQB.jpg)
 
 # WurmEsp
 ### Usage
