@@ -168,10 +168,10 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						method.invoke(proxy, args);
 						for (Unit unit : this.pickableUnits) {
 							if ((players && unit.isPlayer())
-									|| (mobs && unit.isMob())
-									|| (specials && unit.isSpecial())
 									|| (uniques && unit.isUnique())
-									|| (champions && unit.isChampion()))
+									|| (champions && unit.isChampion())
+									|| (mobs && unit.isMob())
+									|| (specials && unit.isSpecial()))
 							{
 								unit.renderUnit();
 							}

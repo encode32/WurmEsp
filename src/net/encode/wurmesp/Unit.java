@@ -144,7 +144,7 @@ public class Unit {
 	
 	public boolean isChampion()
 	{
-		return this.getModelName().contains("champion");
+		return this.getHoverName().contains("champion");
 	}
 	
 	public boolean isUnique()
