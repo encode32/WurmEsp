@@ -85,30 +85,30 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|champions|xray}");
 				}
 				return true;
-			} else if (data.length == 4) {
+			} else if (data.length > 2) {
 
 				switch (data[1]) {
 				case "search":
-					if(data[2].contains("h"))
+					if(data[2].equals("h"))
 					{
 						search = data[3];
 						searchType = SEARCHTYPE.HOVER;
 						hud.consoleOutput("Searching for " + search + " in HoverName");
-					}else if(data[2].contains("m"))
+					}else if(data[2].equals("m"))
 					{
 						search = data[3];
 						searchType = SEARCHTYPE.MODEL;
 						hud.consoleOutput("Searching for " + search + " in ModelName");
-					}else if(data[2].contains("hm"))
+					}else if(data[2].equals("hm"))
 					{
 						search = data[3];
 						searchType = SEARCHTYPE.BOTH;
-						hud.consoleOutput("Searching for " + search + " in ModelName");
-					}else if(data[2].contains("off"))
+						hud.consoleOutput("Searching for " + search + " in HoverName and ModelName");
+					}else if(data[2].equals("off"))
 					{
 						search = "";
 						searchType = SEARCHTYPE.NONE;
-						hud.consoleOutput("Searching for " + search + " in ModelName");
+						hud.consoleOutput("Searching off");
 					}else
 					{
 						hud.consoleOutput("Usage: esp search {h/m/hm/off} <name>");
