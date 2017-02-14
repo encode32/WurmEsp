@@ -1,5 +1,6 @@
 package net.encode.wurmesp;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -12,15 +13,17 @@ import org.gotti.wurmunlimited.modloader.interfaces.Configurable;
 import org.gotti.wurmunlimited.modloader.interfaces.Initable;
 import org.gotti.wurmunlimited.modloader.interfaces.PreInitable;
 import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
+import com.wurmonline.client.game.CaveDataBuffer;
+import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickableUnit;
-import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.gui.HeadsUpDisplay;
 import com.wurmonline.client.renderer.gui.MainMenu;
 import com.wurmonline.client.renderer.gui.WurmComponent;
 import com.wurmonline.client.renderer.gui.WurmEspWindow;
 import com.wurmonline.client.settings.SavePosManager;
+import com.wurmonline.mesh.Tiles.Tile;
 
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -33,12 +36,20 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static Logger logger = Logger.getLogger("WurmEspMod");
 	private List<Unit> pickableUnits = new ArrayList<Unit>();
 	private List<Unit> toRemove = new ArrayList<Unit>();
+	
+	private CaveDataBuffer caveBuffer = null;
+	
+	public static enum SEARCHTYPE {NONE,HOVER,MODEL,BOTH};
 
+	public static String search= "defaultnosearch";
+	public static SEARCHTYPE searchType = SEARCHTYPE.NONE;
+	
 	public static boolean players = true;
 	public static boolean mobs = false;
 	public static boolean specials = true;
 	public static boolean uniques = true;
 	public static boolean champions = true;
+	public static boolean xray = false;
 	
 	
 	public static boolean handleInput(final String cmd, final String[] data) {
@@ -66,12 +77,49 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					champions = !champions;
 					hud.consoleOutput("ESP champions changed");
 					break;
+				case "xray":
+					xray = !xray;
+					hud.consoleOutput("ESP xray changed");
+					break;
 				default:
-					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|champions}");
+					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|champions|xray}");
+				}
+				return true;
+			} else if (data.length == 4) {
+
+				switch (data[1]) {
+				case "search":
+					if(data[2].contains("h"))
+					{
+						search = data[3];
+						searchType = SEARCHTYPE.HOVER;
+						hud.consoleOutput("Searching for " + search + " in HoverName");
+					}else if(data[2].contains("m"))
+					{
+						search = data[3];
+						searchType = SEARCHTYPE.MODEL;
+						hud.consoleOutput("Searching for " + search + " in ModelName");
+					}else if(data[2].contains("hm"))
+					{
+						search = data[3];
+						searchType = SEARCHTYPE.BOTH;
+						hud.consoleOutput("Searching for " + search + " in ModelName");
+					}else if(data[2].contains("off"))
+					{
+						search = "";
+						searchType = SEARCHTYPE.NONE;
+						hud.consoleOutput("Searching for " + search + " in ModelName");
+					}else
+					{
+						hud.consoleOutput("Usage: esp search {h/m/hm/off} <name>");
+					}
+					break;
+				default:
+					hud.consoleOutput("Usage: esp search {h/m/hm/off} <name>");
 				}
 				return true;
 			} else {
-				hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|champions}");
+				hud.consoleOutput("Error.");
 			}
 			return true;
 		}
@@ -114,6 +162,9 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		champions = Boolean.valueOf(
 				properties.getProperty("champions", 
 						Boolean.toString(champions)));
+		xray = Boolean.valueOf(
+				properties.getProperty("xray", 
+						Boolean.toString(xray)));
 		
 		Unit.colorPlayers = colorStringToFloatA(
 				properties.getProperty("colorPlayers", 
@@ -166,6 +217,8 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.WorldRender", "renderPickedItem",
 					"()V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
+						Class<?> cls = proxy.getClass();
+						
 						for (Unit unit : this.pickableUnits) {
 							if ((players && unit.isPlayer())
 									|| (uniques && unit.isUnique())
@@ -176,9 +229,81 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 								unit.renderUnit();
 							}
 						}
+						if(xray)
+						{
+							World world = ReflectionUtil.getPrivateField(proxy,
+									ReflectionUtil.getField(cls, "world"));
+							
+							this.caveBuffer = world.getCaveBuffer();
+							
+							PlayerPosition pos = world.getPlayer().getPos();
+							
+							int px = pos.getTileX();
+						    int py = pos.getTileY();
+						    int size = 64;
+						    int sx = px - size / 2;
+						    int sy = py - size / 2;
+							
+							for (int x = 0; x < size; x++) {
+							      for (int y = size - 1; y >= 0; y--)
+							      {
+							    	  int tileX = x + sx;
+							    	  int tileY = y + sy;
+							    	  Tile tile = this.caveBuffer.getTileType(tileX, tileY);
+							    	  if(tile != null && tile.isOreCave())
+							    	  {
+							    		  Color color = CaveColors.getColorFor(tile);
+							    		  float[] colorF = {(float)color.getRed()/255,(float)color.getGreen()/255,(float)color.getBlue()/255};
+							    		  
+							    		  Unit.render(colorF, pos, tileX, tileY);
+							    	  }
+							      }
+							}
+						}
+						
 						return null;
 					});
 
+			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.MobileModelRenderable",
+					"initialize", "()V", () -> (proxy, method, args) -> {
+						method.invoke(proxy, args);
+						PickableUnit item = (PickableUnit)proxy;
+
+						Unit unit = new Unit(item.getId(), item, true);
+						
+						if(unit.isPlayer() || unit.isMob())
+						{
+							this.pickableUnits.add(unit);
+						}else if(unit.isSpecial()) 
+						{
+							this.pickableUnits.add(unit);
+						}
+						return null;
+					});
+
+			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.MobileModelRenderable",
+					"removed", "()V", () -> (proxy, method, args) -> {
+						method.invoke(proxy, args);
+						PickableUnit item = (PickableUnit)proxy;
+
+						for (Unit unit : pickableUnits) {
+							if (unit.getId() == item.getId()) {
+								toRemove.add(unit);
+							}
+						}
+						
+						for (Unit unit : toRemove) {
+							if (unit.getId() == item.getId()) {
+								pickableUnits.remove(unit);
+							}
+						}
+						
+						toRemove.clear();
+						
+						return null;
+					});
+
+			
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.GroundItemCellRenderable",
 					"initialize", "()V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
@@ -218,47 +343,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						
 						return null;
 					});
-
-			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.CreatureCellRenderable",
-					"initialize", "()V", () -> (proxy, method, args) -> {
-						method.invoke(proxy, args);
-						
-						CreatureCellRenderable creature = (CreatureCellRenderable) proxy;
-						
-						Unit unit = new Unit(creature.getId(), (PickableUnit) proxy, true);
-						
-						
-						if(unit.isPlayer() || unit.isMob())
-						{
-							this.pickableUnits.add(unit);
-						}
-						
-						return null;
-					});
-
-			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.CreatureCellRenderable",
-					"removed", "()V", () -> (proxy, method, args) -> {
-						method.invoke(proxy, args);
-
-						CreatureCellRenderable creature = (CreatureCellRenderable) proxy;
-
-						for (Unit unit : pickableUnits) {
-							if (unit.getId() == creature.getId()) {
-								toRemove.add(unit);
-							}
-						}
-						
-						for (Unit unit : toRemove) {
-							if (unit.getId() == creature.getId()) {
-								pickableUnits.remove(unit);
-							}
-						}
-						
-						toRemove.clear();
-						
-						return null;
-					});
-
+			
 			logger.fine("Loaded");
 		} catch (Throwable e) {
 			logger.log(Level.SEVERE, "Error loading mod", e);

@@ -5,10 +5,13 @@ import java.util.logging.Level;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.lwjgl.opengl.GL11;
 
+import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
+
+import net.encode.wurmesp.WurmEspMod.SEARCHTYPE;
 
 public class Unit {
 	private long id;
@@ -112,7 +115,7 @@ public class Unit {
 	
 	public String getModelName()
 	{
-		return this.isCreature ? ((CreatureCellRenderable)this.pickableUnit).getModelName().toString() : this.item.getModelName().toString();
+		return this.isCreature ? ((CreatureCellRenderable)this.getPickableUnit()).getModelName().toString() : this.item.getModelName().toString();
 	}
 	
 	public boolean isPlayer()
@@ -134,7 +137,7 @@ public class Unit {
 	{
 		for(String mob : this.aggroMOBS)
 		{
-			if(this.pickableUnit.getHoverName().contains(mob))
+			if(this.getHoverName().contains(mob))
 			{
 				return true;
 			}
@@ -151,7 +154,7 @@ public class Unit {
 	{
 		for(String mob : this.uniqueMOBS)
 		{
-			if(this.pickableUnit.getHoverName().contains(mob))
+			if(this.getHoverName().contains(mob))
 			{
 				return true;
 			}
@@ -163,7 +166,29 @@ public class Unit {
 	{
 		for(String item : this.specialITEMS)
 		{
-			if(this.pickableUnit.getHoverName().contains(item))
+			if(this.getHoverName().contains(item))
+			{
+				return true;
+			}
+		}
+		if(WurmEspMod.searchType == SEARCHTYPE.HOVER)
+		{
+			if(this.getHoverName().contains(WurmEspMod.search))
+			{
+				return true;
+			}
+		}else if(WurmEspMod.searchType == SEARCHTYPE.MODEL)
+		{
+			if(this.getModelName().contains(WurmEspMod.search))
+			{
+				return true;
+			}
+		}else if(WurmEspMod.searchType == SEARCHTYPE.BOTH)
+		{
+			if(this.getHoverName().contains(WurmEspMod.search))
+			{
+				return true;
+			}else if(this.getModelName().contains(WurmEspMod.search))
 			{
 				return true;
 			}
@@ -268,5 +293,96 @@ public class Unit {
 		GL11.glEnable(2884);
 
 		GL11.glPopMatrix();
+	}
+	
+	public static void render(float[] color, PlayerPosition pos, int x, int y) {
+		
+		float br = 3.5f;
+		GL11.glPushMatrix();
+
+		GL11.glDisable(2884);
+
+		float[] col = color;
+
+		GL11.glDepthRange(0.0D, 0.009999999776482582D);
+
+		GL11.glColorMask(false, false, false, false);
+		renderCube(x, pos.getH(), y);
+
+		GL11.glBlendFunc(770, 771);
+		GL11.glEnable(3042);
+
+		GL11.glColor4f(col[0], col[1], col[2], br);
+		GL11.glDepthFunc(513);
+		GL11.glDepthRange(0.0D, 1.0D);
+		GL11.glLineWidth(br);
+		GL11.glPolygonMode(1028, 6913);
+
+		GL11.glColorMask(true, true, true, true);
+		renderCube(x, pos.getH(), y);
+
+		GL11.glClear(256);
+
+		GL11.glDepthFunc(519);
+		GL11.glDepthRange(0.0D, 0.009999999776482582D);
+		GL11.glPolygonMode(1028, 6914);
+
+		GL11.glColorMask(false, false, false, false);
+		renderCube(x, pos.getH(), y);
+
+		GL11.glColor4f(col[0], col[1], col[2], br * 0.25F);
+		GL11.glDepthFunc(513);
+		GL11.glDepthRange(0.0D, 1.0D);
+		GL11.glPolygonMode(1028, 6913);
+
+		GL11.glColorMask(true, true, true, true);
+		renderCube(x, pos.getH(), y);
+
+		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+		GL11.glDepthFunc(515);
+		GL11.glDepthRange(0.0D, 1.0D);
+		GL11.glLineWidth(1.0F);
+		GL11.glPolygonMode(1028, 6914);
+
+		GL11.glDisable(3042);
+
+		GL11.glEnable(2884);
+
+		GL11.glPopMatrix();
+	}
+	
+	private static void renderCube(float x, float z, float y)
+	{
+		float curX = x * 4;
+	    float curY = y * 4;
+	    float nextX = (x + 1) * 4;
+	    float nextY = (y + 1) * 4;
+	    
+	    float x0 = curX + 0.2F;
+	    float y0 = curY + 0.2F;
+	    float x1 = nextX - 0.2F;
+	    float y1 = nextY - 0.2F;
+	    
+	    float z0 = z;
+	    float z1 = z0 + 3;
+	    
+	    GL11.glBegin(5);
+	    
+	    GL11.glVertex3f(x1, z0, y0);
+	    GL11.glVertex3f(x1, z0, y1);
+	    GL11.glVertex3f(x1, z1, y0);
+	    GL11.glVertex3f(x1, z1, y1);
+	    GL11.glVertex3f(x0, z1, y1);
+	    GL11.glVertex3f(x1, z0, y1);
+	    GL11.glVertex3f(x0, z0, y1);
+	    GL11.glVertex3f(x1, z0, y0);
+	    GL11.glVertex3f(x0, z0, y0);
+	    GL11.glVertex3f(x1, z1, y0);
+	    GL11.glVertex3f(x0, z1, y0);
+	    GL11.glVertex3f(x0, z1, y1);
+	    GL11.glVertex3f(x0, z0, y0);
+	    GL11.glVertex3f(x0, z0, y1);
+	    
+	    GL11.glEnd();
 	}
 }
