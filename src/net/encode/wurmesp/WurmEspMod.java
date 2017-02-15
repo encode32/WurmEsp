@@ -252,7 +252,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 							    	  Tile tile = this.caveBuffer.getTileType(tileX, tileY);
 							    	  if(tile != null && tile.isOreCave())
 							    	  {
-							    		  Color color = CaveColors.getColorFor(tile);
+							    		  Color color = XrayColors.getColorFor(tile);
 							    		  float[] colorF = {(float)color.getRed()/255,(float)color.getGreen()/255,(float)color.getBlue()/255};
 							    		  
 							    		  Unit.render(colorF, pos, tileX, tileY);

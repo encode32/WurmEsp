@@ -7,7 +7,7 @@ import java.util.Map;
 import com.wurmonline.mesh.Tiles;
 import com.wurmonline.mesh.Tiles.Tile;
 
-public class CaveColors
+public class XrayColors
 {
   private static final Map<Tiles.Tile, Color> mappings = new HashMap<Tile, Color>();
   
