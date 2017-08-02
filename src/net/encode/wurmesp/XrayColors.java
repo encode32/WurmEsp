@@ -30,6 +30,7 @@ public class XrayColors
     addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, new Color(235, 235, 235));
     addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, Color.BLACK);
     addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, Color.WHITE);
+    addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, Color.ORANGE);
   }
   
   private static void addMapping(Tiles.Tile tile, Color color)

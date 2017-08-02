@@ -200,11 +200,14 @@ public class Unit {
 	{
 		if(this.isPlayer())
 		{
-			this.color = colorPlayers;
-		}
-		else if(this.isEnemyPlayer())
-		{
-			this.color = colorPlayersEnemy;
+			if(!this.isEnemyPlayer())
+			{
+				this.color = colorPlayers;
+			}
+			else
+			{
+				this.color = colorPlayersEnemy;
+			}
 		}
 		else if(this.isUnique())
 		{

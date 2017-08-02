@@ -13,6 +13,7 @@ import org.gotti.wurmunlimited.modloader.interfaces.Configurable;
 import org.gotti.wurmunlimited.modloader.interfaces.Initable;
 import org.gotti.wurmunlimited.modloader.interfaces.PreInitable;
 import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
+
 import com.wurmonline.client.game.CaveDataBuffer;
 import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
@@ -213,7 +214,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						this.initEspWR();
 						return null;
 					});
-
+			
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.WorldRender", "renderPickedItem",
 					"()V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
