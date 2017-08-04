@@ -126,7 +126,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		}
 		return false;
 	}
-
+	
 	private float[] colorStringToFloatA(String color)
 	{
 		String[] colors = color.split(",");
@@ -188,6 +188,10 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		Unit.colorChampions = colorStringToFloatA(
 				properties.getProperty("colorChampions", 
 						colorFloatAToString(Unit.colorChampions)));
+		
+		Unit.aggroMOBS = properties.getProperty("aggroMOBS").split(";");
+		Unit.uniqueMOBS = properties.getProperty("uniqueMOBS").split(";");
+		Unit.specialITEMS = properties.getProperty("specialITEMS").split(";");
 		
 		logger.log(Level.INFO, "Config loaded");
 	}

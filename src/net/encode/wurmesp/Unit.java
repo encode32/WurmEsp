@@ -28,45 +28,11 @@ public class Unit {
 	public static float[] colorUniques = {0.0f, 0.0f, 0.0f};
 	public static float[] colorChampions = {0.0f, 0.0f, 0.0f};
 	
-	private String[] aggroMOBS = {
-			" anaconda",
-			" black bear",
-			" black wolf",
-			" brown bear",
-			" cave bug",
-			" crab",
-			" crocodile",
-			" fog Spider",
-			" goblin",
-			" hell hound",
-			" hell scorpious",
-			" huge spider",
-			" large rat",
-			" lava fiend",
-			" lava spider",
-			" mountain lion",
-			" rabid hyena",
-			" scorpion",
-			" sea serpent",
-			" seal",
-			" shark",
-			" troll",
-			" unicorn",
-			" wild cat"
-			};
+	public static String[] aggroMOBS;
 	
-	private String[] uniqueMOBS = {
-			" forest giant",
-			" goblin leader",
-			" kyklops",
-			" troll king",
-			" dragon"
-			};
+	public static String[] uniqueMOBS;
 	
-	private String[] specialITEMS = {
-			"source",
-			"treasure"
-			};
+	public static String[] specialITEMS;
 	
 	public Unit(long id, PickableUnit pickableUnit, boolean isCreature)
 	{
@@ -135,7 +101,7 @@ public class Unit {
 	
 	public boolean isAggroMob()
 	{
-		for(String mob : this.aggroMOBS)
+		for(String mob : aggroMOBS)
 		{
 			if(this.getHoverName().contains(mob))
 			{
@@ -152,7 +118,7 @@ public class Unit {
 	
 	public boolean isUnique()
 	{
-		for(String mob : this.uniqueMOBS)
+		for(String mob : uniqueMOBS)
 		{
 			if(this.getHoverName().contains(mob))
 			{
@@ -164,7 +130,7 @@ public class Unit {
 	
 	public boolean isSpecial()
 	{
-		for(String item : this.specialITEMS)
+		for(String item : specialITEMS)
 		{
 			if(this.getHoverName().contains(item))
 			{
