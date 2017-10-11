@@ -6,8 +6,16 @@ import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.lwjgl.opengl.GL11;
 
 import com.wurmonline.client.game.PlayerPosition;
+import com.wurmonline.client.renderer.Color;
 import com.wurmonline.client.renderer.GroundItemData;
+import com.wurmonline.client.renderer.PickRenderer;
+import com.wurmonline.client.renderer.PickRenderer.CustomPickFillDepthRender;
+import com.wurmonline.client.renderer.PickRenderer.CustomPickFillRender;
+import com.wurmonline.client.renderer.PickRenderer.CustomPickOutlineRender;
 import com.wurmonline.client.renderer.PickableUnit;
+import com.wurmonline.client.renderer.backend.Primitive;
+import com.wurmonline.client.renderer.backend.Queue;
+import com.wurmonline.client.renderer.backend.RenderState;
 import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
 
@@ -201,71 +209,63 @@ public class Unit {
 		}
 	}
 	
-	public void renderUnit()
+	public void renderUnit(Queue queue)
 	{
-		this.render();
+		this.render(queue);
 	}
 	
-	private void render() {
+	private void render(Queue queue) {
 		if (this.pickableUnit == null) {
 			return;
 		}
-		float br = 3.5f;
-		GL11.glPushMatrix();
-
-		GL11.glDisable(2884);
-
-		float[] col = this.color;
-
-		GL11.glDepthRange(0.0D, 0.009999999776482582D);
-
-		GL11.glColorMask(false, false, false, false);
-		this.pickableUnit.renderPicked();
-
-		GL11.glBlendFunc(770, 771);
-		GL11.glEnable(3042);
-
-		GL11.glColor4f(col[0], col[1], col[2], br);
-		GL11.glDepthFunc(513);
-		GL11.glDepthRange(0.0D, 1.0D);
-		GL11.glLineWidth(br);
-		GL11.glPolygonMode(1028, 6913);
-
-		GL11.glColorMask(true, true, true, true);
-		this.pickableUnit.renderPicked();
-
-		GL11.glClear(256);
-
-		GL11.glDepthFunc(519);
-		GL11.glDepthRange(0.0D, 0.009999999776482582D);
-		GL11.glPolygonMode(1028, 6914);
-
-		GL11.glColorMask(false, false, false, false);
-		this.pickableUnit.renderPicked();
-
-		GL11.glColor4f(col[0], col[1], col[2], br * 0.25F);
-		GL11.glDepthFunc(513);
-		GL11.glDepthRange(0.0D, 1.0D);
-		GL11.glPolygonMode(1028, 6913);
-
-		GL11.glColorMask(true, true, true, true);
-		this.pickableUnit.renderPicked();
-
-		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		GL11.glDepthFunc(515);
-		GL11.glDepthRange(0.0D, 1.0D);
-		GL11.glLineWidth(1.0F);
-		GL11.glPolygonMode(1028, 6914);
-
-		GL11.glDisable(3042);
-
-		GL11.glEnable(2884);
-
-		GL11.glPopMatrix();
+		
+	    float br = 3.5F;
+	    
+	    RenderState renderStateFill = new RenderState();
+	    RenderState renderStateFillDepth = new RenderState();
+	    RenderState renderStateOutline = new RenderState();
+	    Color color = new Color();
+	    color.set(this.color[0], this.color[1], this.color[2]);
+	    
+	    color.a = br;
+	    
+	    renderStateFill.alphaval = color.a;
+	    color.a *= this.pickableUnit.getOutlineColor().a;
+	    
+	    PickRenderer tmp1217_1214 = WurmEspMod._pickRenderer;
+	    CustomPickFillRender customPickFill = tmp1217_1214.new CustomPickFillRender();
+	    
+	    PickRenderer tmp1237_1234 = WurmEspMod._pickRenderer;
+	    CustomPickFillDepthRender customPickFillDepth = tmp1237_1234.new CustomPickFillDepthRender();
+	    
+	    PickRenderer tmp1257_1254 = WurmEspMod._pickRenderer;
+	    CustomPickOutlineRender customPickOutline = tmp1257_1254.new CustomPickOutlineRender();
+	      
+	    renderStateFill.twosided = false;
+	    renderStateFill.depthtest = Primitive.TestFunc.ALWAYS;
+	    renderStateFill.depthwrite = true;
+	    renderStateFill.customstate = customPickFill;
+	    
+	    this.pickableUnit.renderPicked(queue, renderStateFill, color);
+	    
+	    color.a = (br * 0.25F);
+	    renderStateOutline.alphaval = color.a;
+	    color.a *= this.pickableUnit.getOutlineColor().a;
+	    
+	    renderStateOutline.twosided = false;
+	    renderStateOutline.depthtest = Primitive.TestFunc.LESS;
+	    renderStateOutline.depthwrite = false;
+	    renderStateOutline.blendmode = Primitive.BlendMode.ALPHABLEND;
+	    renderStateOutline.customstate = customPickOutline;
+	    
+	    this.pickableUnit.renderPicked(queue, renderStateOutline, color);
+	    
+	    renderStateFillDepth.customstate = customPickFillDepth;
+	    renderStateFillDepth.depthtest = Primitive.TestFunc.ALWAYS;
+	    this.pickableUnit.renderPicked(queue, renderStateFillDepth, color);
 	}
 	
 	public static void render(float[] color, PlayerPosition pos, int x, int y) {
-		
 		float br = 3.5f;
 		GL11.glPushMatrix();
 

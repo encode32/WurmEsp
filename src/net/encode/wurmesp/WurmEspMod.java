@@ -1,6 +1,7 @@
 package net.encode.wurmesp;
 
 import java.awt.Color;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -18,7 +19,10 @@ import com.wurmonline.client.game.CaveDataBuffer;
 import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.GroundItemData;
+import com.wurmonline.client.renderer.PickRenderer;
 import com.wurmonline.client.renderer.PickableUnit;
+import com.wurmonline.client.renderer.backend.Queue;
+import com.wurmonline.client.renderer.cave.CaveWallPicker;
 import com.wurmonline.client.renderer.gui.HeadsUpDisplay;
 import com.wurmonline.client.renderer.gui.MainMenu;
 import com.wurmonline.client.renderer.gui.WurmComponent;
@@ -52,6 +56,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean champions = true;
 	public static boolean xray = false;
 	
+	public static PickRenderer _pickRenderer;
 	
 	public static boolean handleInput(final String cmd, final String[] data) {
 		if (cmd.equals("esp")) {
@@ -220,9 +225,19 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					});
 			
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.WorldRender", "renderPickedItem",
-					"()V", () -> (proxy, method, args) -> {
+					"(Lcom/wurmonline/client/renderer/backend/Queue;)V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
 						Class<?> cls = proxy.getClass();
+						
+						World world = ReflectionUtil.getPrivateField(proxy,
+								ReflectionUtil.getField(cls, "world"));
+						
+						PickRenderer pickRenderer = ReflectionUtil.getPrivateField(proxy,
+								ReflectionUtil.getField(cls, "pickRenderer"));
+						_pickRenderer = pickRenderer;
+						
+						Queue queuePick = ReflectionUtil.getPrivateField(proxy,
+								ReflectionUtil.getField(cls, "queuePick"));
 						
 						for (Unit unit : this.pickableUnits) {
 							if ((players && unit.isPlayer())
@@ -231,14 +246,12 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 									|| (mobs && unit.isMob())
 									|| (specials && unit.isSpecial()))
 							{
-								unit.renderUnit();
+								unit.renderUnit(queuePick);
 							}
 						}
+						/*
 						if(xray)
 						{
-							World world = ReflectionUtil.getPrivateField(proxy,
-									ReflectionUtil.getField(cls, "world"));
-							
 							this.caveBuffer = world.getCaveBuffer();
 							
 							PlayerPosition pos = world.getPlayer().getPos();
@@ -264,11 +277,12 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 							    	  }
 							      }
 							}
-						}
+							
+						}*/
 						
 						return null;
 					});
-
+			
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.MobileModelRenderable",
 					"initialize", "()V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
