@@ -19,6 +19,7 @@ import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickRenderer;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.backend.Queue;
+import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.gui.HeadsUpDisplay;
 import com.wurmonline.client.renderer.gui.MainMenu;
 import com.wurmonline.client.renderer.gui.WurmComponent;
@@ -287,9 +288,10 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.MobileModelRenderable",
 					"initialize", "()V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
-						PickableUnit item = (PickableUnit) proxy;
+						
+						PickableUnit pUnit = (PickableUnit) proxy;
 
-						Unit unit = new Unit(item.getId(), item, true);
+						Unit unit = new Unit(pUnit.getId(), pUnit, ((CreatureCellRenderable)proxy).getModelName().toString(),((CreatureCellRenderable)proxy).getHoverName());
 
 						if (unit.isPlayer() || unit.isMob()) {
 							this.pickableUnits.add(unit);
@@ -324,11 +326,13 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.GroundItemCellRenderable",
 					"initialize", "()V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
+						
 						Class<?> cls = proxy.getClass();
+						PickableUnit pUnit = (PickableUnit) proxy;
 						GroundItemData item = ReflectionUtil.getPrivateField(proxy,
 								ReflectionUtil.getField(cls, "item"));
-
-						Unit unit = new Unit(item.getId(), (PickableUnit) proxy, false);
+						
+						Unit unit = new Unit(item.getId(), pUnit, item.getModelName().toString(),((PickableUnit)proxy).getHoverName());
 
 						if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
