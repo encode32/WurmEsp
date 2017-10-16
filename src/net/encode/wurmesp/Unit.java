@@ -1,10 +1,6 @@
 package net.encode.wurmesp;
 
-import java.util.logging.Level;
-
-import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import com.wurmonline.client.renderer.Color;
-import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickRenderer;
 import com.wurmonline.client.renderer.PickRenderer.CustomPickFillDepthRender;
 import com.wurmonline.client.renderer.PickRenderer.CustomPickFillRender;
@@ -13,17 +9,14 @@ import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.backend.Primitive;
 import com.wurmonline.client.renderer.backend.Queue;
 import com.wurmonline.client.renderer.backend.RenderState;
-import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
-import com.wurmonline.client.renderer.cell.GroundItemCellRenderable;
-
 import net.encode.wurmesp.WurmEspMod.SEARCHTYPE;
 
 public class Unit {
 	private long id;
+	private String modelName;
+	private String hoverName;
 	private PickableUnit pickableUnit;
-	private boolean isCreature;
 	private float[] color;
-	private GroundItemData item;
 	
 	public static float[] colorPlayers = {0.0f, 0.0f, 0.0f};
 	public static float[] colorPlayersEnemy = {0.0f, 0.0f, 0.0f};
@@ -39,27 +32,12 @@ public class Unit {
 	
 	public static String[] specialITEMS;
 	
-	public Unit(long id, PickableUnit pickableUnit, boolean isCreature)
+	public Unit(long id, PickableUnit pickableUnit, String modelName, String hoverName)
 	{
 		this.id = id;
 		this.pickableUnit = pickableUnit;
-		this.isCreature = isCreature;
-		
-		if(!this.isCreature)
-		{
-			try {
-				this.item = ReflectionUtil.getPrivateField(pickableUnit,
-						ReflectionUtil.getField(((GroundItemCellRenderable)pickableUnit).getClass(), "item"));
-			} catch (IllegalArgumentException e) {
-				WurmEspMod.logger.log(Level.WARNING, e.getMessage());
-			} catch (IllegalAccessException e) {
-				WurmEspMod.logger.log(Level.WARNING, e.getMessage());
-			} catch (ClassCastException e) {
-				WurmEspMod.logger.log(Level.WARNING, e.getMessage());
-			} catch (NoSuchFieldException e) {
-				WurmEspMod.logger.log(Level.WARNING, e.getMessage());
-			}
-		}
+		this.modelName = modelName;
+		this.hoverName = hoverName;
 		
 		this.determineColor();
 	}
@@ -81,12 +59,12 @@ public class Unit {
 	
 	public String getHoverName()
 	{
-		return this.pickableUnit.getHoverName();
+		return this.hoverName;
 	}
 	
 	public String getModelName()
 	{
-		return this.isCreature ? ((CreatureCellRenderable)this.getPickableUnit()).getModelName().toString() : this.item.getModelName().toString();
+		return this.modelName;
 	}
 	
 	public boolean isPlayer()
