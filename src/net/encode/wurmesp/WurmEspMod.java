@@ -1,5 +1,6 @@
 package net.encode.wurmesp;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -25,6 +26,8 @@ import com.wurmonline.client.renderer.gui.MainMenu;
 import com.wurmonline.client.renderer.gui.WurmComponent;
 import com.wurmonline.client.renderer.gui.WurmEspWindow;
 import com.wurmonline.client.settings.SavePosManager;
+import com.wurmonline.mesh.Tiles;
+
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -60,6 +63,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean xrayrefreshthread = true;
 	public static int xraydiameter = 32;
 	public static int xrayrefreshrate = 5;
+	
 
 	public static PickRenderer _pickRenderer;
 
@@ -171,6 +175,151 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
 		Unit.colorChampions = colorStringToFloatA(
 				properties.getProperty("colorChampions", colorFloatAToString(Unit.colorChampions)));
+		/*
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_IRON, Color.RED.darker());
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_COPPER, Color.GREEN);
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_TIN, Color.GRAY);
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GOLD, Color.YELLOW.darker());
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ADAMANTINE, Color.CYAN);
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GLIMMERSTEEL, Color.YELLOW.brighter());
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_SILVER, Color.LIGHT_GRAY);
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_LEAD, Color.PINK.darker().darker());
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, new Color(235, 235, 235));
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, Color.BLACK);
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, Color.WHITE);
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SANDSTONE, Color.YELLOW.darker().darker());
+		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, Color.WHITE.darker());
+		*/
+		String oreColorOreIron = properties.getProperty("oreColorOreIron", "default");
+		if(!oreColorOreIron.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_IRON, colorStringToFloatA(oreColorOreIron));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_IRON, Color.RED.darker());
+		}
+		
+		String oreColorOreCopper = properties.getProperty("oreColorOreCopper", "default");
+		if(!oreColorOreCopper.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_COPPER, colorStringToFloatA(oreColorOreCopper));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_COPPER, Color.GREEN);
+		}
+		
+		String oreColorOreTin = properties.getProperty("oreColorOreTin", "default");
+		if(!oreColorOreTin.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_TIN, colorStringToFloatA(oreColorOreTin));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_TIN, Color.GRAY);
+		}
+		
+		String oreColorOreGold = properties.getProperty("oreColorOreGold", "default");
+		if(!oreColorOreGold.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GOLD, colorStringToFloatA(oreColorOreGold));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GOLD, Color.YELLOW.darker());
+		}
+		
+		String oreColorOreAdamantine = properties.getProperty("oreColorOreAdamantine", "default");
+		if(!oreColorOreAdamantine.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ADAMANTINE, colorStringToFloatA(oreColorOreAdamantine));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ADAMANTINE, Color.CYAN);
+		}
+		
+		String oreColorOreGlimmersteel = properties.getProperty("oreColorOreGlimmersteel", "default");
+		if(!oreColorOreGlimmersteel.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GLIMMERSTEEL, colorStringToFloatA(oreColorOreGlimmersteel));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GLIMMERSTEEL, Color.YELLOW.brighter());
+		}
+		
+		String oreColorOreSilver = properties.getProperty("oreColorOreSilver", "default");
+		if(!oreColorOreSilver.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_SILVER, colorStringToFloatA(oreColorOreSilver));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_SILVER, Color.LIGHT_GRAY);
+		}
+		
+		String oreColorOreLead = properties.getProperty("oreColorOreLead", "default");
+		if(!oreColorOreLead.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_LEAD, colorStringToFloatA(oreColorOreLead));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_LEAD, Color.PINK.darker().darker());
+		}
+		
+		String oreColorOreZinc = properties.getProperty("oreColorOreZinc", "default");
+		if(!oreColorOreZinc.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, colorStringToFloatA(oreColorOreZinc));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, new Color(235, 235, 235));
+		}
+		
+		String oreColorSlate = properties.getProperty("oreColorSlate", "default");
+		if(!oreColorSlate.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, colorStringToFloatA(oreColorSlate));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, Color.BLACK);
+		}
+		
+		String oreColorMarble = properties.getProperty("oreColorMarble", "default");
+		if(!oreColorMarble.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, colorStringToFloatA(oreColorMarble));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, Color.WHITE);
+		}
+		
+		String oreColorSandstone = properties.getProperty("oreColorSandstone", "default");
+		if(!oreColorSandstone.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SANDSTONE, colorStringToFloatA(oreColorSandstone));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SANDSTONE, Color.YELLOW.darker().darker());
+		}
+		
+		String oreColorRocksalt = properties.getProperty("oreColorRocksalt", "default");
+		if(!oreColorRocksalt.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, colorStringToFloatA(oreColorRocksalt));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, Color.WHITE.darker());
+		}
+		
 
 		Unit.aggroMOBS = properties.getProperty("aggroMOBS").split(";");
 		Unit.uniqueMOBS = properties.getProperty("uniqueMOBS").split(";");
