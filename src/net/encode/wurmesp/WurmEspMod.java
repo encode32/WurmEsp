@@ -55,6 +55,8 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean uniques = true;
 	public static boolean champions = true;
 	public static boolean xray = false;
+	public static boolean xraythread = true;
+	public static boolean xrayrefreshthread = true;
 	public static int xraydiameter = 32;
 	public static int xrayrefreshrate = 5;
 
@@ -150,6 +152,8 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		uniques = Boolean.valueOf(properties.getProperty("uniques", Boolean.toString(uniques)));
 		champions = Boolean.valueOf(properties.getProperty("champions", Boolean.toString(champions)));
 		xray = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xray)));
+		xraythread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xraythread)));
+		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
 		xraydiameter = Integer.parseInt(properties.getProperty("xraydiameter", Integer.toString(xraydiameter)));
 		xrayrefreshrate = Integer.parseInt(properties.getProperty("xrayrefreshrate", Integer.toString(xrayrefreshrate)));
 
@@ -226,14 +230,55 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 							
 							if(cronoManager.hasEnded())
 							{
-								xrayManager._refreshData();
+								if(xrayrefreshthread)
+								{
+									Thread refreshThread = new Thread(() -> {
+										xrayManager._refreshData();
+									});
+									
+									refreshThread.setPriority(Thread.MAX_PRIORITY);
+									
+									refreshThread.start();
+								}
+								else
+								{
+									xrayManager._refreshData();
+								}
 								cronoManager.restart(xrayrefreshrate*1000);
 							}
-							if(xrayManager._first) { xrayManager._refreshData(); xrayManager._first = false;}
+							if(xrayManager._first)
+							{ 
+								if(xrayrefreshthread)
+								{
+									Thread refreshThread = new Thread(() -> {
+										xrayManager._refreshData();
+									});
+									
+									refreshThread.setPriority(Thread.MAX_PRIORITY);
+									
+									refreshThread.start();
+								}
+								else
+								{
+									xrayManager._refreshData();
+								}
+								xrayManager._first = false;
+							}
 							
-							new Thread(() -> {
+							if(xraythread)
+							{
+								Thread xrayThread = new Thread(() -> {
+									xrayManager._queueXray();
+								});
+								
+								xrayThread.setPriority(Thread.MAX_PRIORITY);
+								
+								xrayThread.start();
+							}
+							else
+							{
 								xrayManager._queueXray();
-							}).start();
+							}
 						}
 
 						return null;

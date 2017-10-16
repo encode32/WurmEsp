@@ -49,7 +49,24 @@ public class XRayManager {
 				float tileX = x + sx;
 				float tileY = y + sy;
 				
-				WurmEspMod._terrain.add(new float[]{tileX,tileY});
+				Tile tile = WurmEspMod._caveBuffer.getTileType((int)tileX, (int)tileY);
+				if (tile != null && tile.isOreCave()) {
+					Color color = XrayColors.getColorFor(tile);
+					float[] colorF = { (float) color.getRed() / 255, (float) color.getGreen() / 255,
+							(float) color.getBlue() / 255 };
+
+					float curX = tileX * 4;
+					float curY = tileY * 4;
+					float nextX = (tileX + 1) * 4;
+					float nextY = (tileY + 1) * 4;
+
+					float x0 = curX + 0.2F;
+					float y0 = curY + 0.2F;
+					float x1 = nextX - 0.2F;
+					float y1 = nextY - 0.2F;
+					
+					WurmEspMod._terrain.add(new float[]{x0,y0,x1,y1,colorF[0],colorF[1],colorF[2]});
+				}
 			}
 		}
 	}
@@ -59,75 +76,63 @@ public class XRayManager {
 		{
 			return;
 		}
-		for (float[] coords : WurmEspMod._terrain) {
-			float tileX = coords[0];
-			float tileY = coords[1];
+		for (float[] terraindata : WurmEspMod._terrain) {
+			float x0 = terraindata[0];
+			float y0 = terraindata[1];
+			float x1 = terraindata[2];
+			float y1 = terraindata[3];
+			
+			float[] colorF = new float[]{terraindata[4],terraindata[5],terraindata[6]};
 
-			Tile tile = WurmEspMod._caveBuffer.getTileType((int)tileX, (int)tileY);
-			if (tile != null && tile.isOreCave()) {
-				Color color = XrayColors.getColorFor(tile);
-				float[] colorF = { (float) color.getRed() / 255, (float) color.getGreen() / 255,
-						(float) color.getBlue() / 255 };
+			PlayerPosition pos = this._world.getPlayer().getPos();
 
-				float curX = tileX * 4;
-				float curY = tileY * 4;
-				float nextX = (tileX + 1) * 4;
-				float nextY = (tileY + 1) * 4;
+			float z0 = pos.getH();
+			float z1 = z0 + 3;
 
-				float x0 = curX + 0.2F;
-				float y0 = curY + 0.2F;
-				float x1 = nextX - 0.2F;
-				float y1 = nextY - 0.2F;
+			VertexBuffer _vBuffer = VertexBuffer.create(VertexBuffer.Usage.PICK, 8, true, false, false, false,
+					false, 0, 0, false, true);
+			FloatBuffer vdata = _vBuffer.lock();
+			vdata.put(new float[] { 
+					x1, z0, y0, 
+					x1, z1, y0, 
+					x0, z1, y0, 
+					x0, z0, y0, 
+					x1, z0, y1, 
+					x1, z1, y1, 
+					x0, z1, y1, 
+					x0, z0, y1 });
+			_vBuffer.unlock();
 
-				PlayerPosition pos = this._world.getPlayer().getPos();
-				
-				float z0 = pos.getH();
-				float z1 = z0 + 3;
+			IndexBuffer _iBuffer = IndexBuffer.create(24, false, true);
+			ShortBuffer idata = _iBuffer.lock();
+			idata.put(new short[] { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 });
+			_iBuffer.unlock();
 
-				VertexBuffer _vBuffer = VertexBuffer.create(VertexBuffer.Usage.PICK, 8, true, false, false, false,
-						false, 0, 0, false, true);
-				FloatBuffer vdata = _vBuffer.lock();
-				vdata.put(new float[] { 
-						x1, z0, y0, 
-						x1, z1, y0, 
-						x0, z1, y0, 
-						x0, z0, y0, 
-						x1, z0, y1, 
-						x1, z1, y1, 
-						x0, z1, y1, 
-						x0, z0, y1 });
-				_vBuffer.unlock();
+			PickRenderer tmp1257_1254 = WurmEspMod._pickRenderer;
+			CustomPickOutlineRender customPickOutline = tmp1257_1254.new CustomPickOutlineRender();
 
-				IndexBuffer _iBuffer = IndexBuffer.create(24, false, true);
-				ShortBuffer idata = _iBuffer.lock();
-				idata.put(new short[] { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 });
-				_iBuffer.unlock();
+			RenderState renderStateOutline = new RenderState();
+			renderStateOutline.alphaval = 0.5F;
+			renderStateOutline.twosided = false;
+			renderStateOutline.depthtest = Primitive.TestFunc.LESS;
+			renderStateOutline.depthwrite = false;
+			renderStateOutline.blendmode = Primitive.BlendMode.ALPHABLEND;
+			renderStateOutline.customstate = customPickOutline;
 
-				PickRenderer tmp1257_1254 = WurmEspMod._pickRenderer;
-				CustomPickOutlineRender customPickOutline = tmp1257_1254.new CustomPickOutlineRender();
+			Primitive p = this._queuePick.reservePrimitive();
 
-				RenderState renderStateOutline = new RenderState();
-				renderStateOutline.alphaval = 0.5F;
-				renderStateOutline.twosided = false;
-				renderStateOutline.depthtest = Primitive.TestFunc.LESS;
-				renderStateOutline.depthwrite = false;
-				renderStateOutline.blendmode = Primitive.BlendMode.ALPHABLEND;
-				renderStateOutline.customstate = customPickOutline;
+			p.vertex = _vBuffer;
+			p.index = _iBuffer;
+			p.num = _iBuffer.getNumIndex() / 2;
+			p.type = Primitive.Type.LINES;
+			p.nolight = true;
+			p.nofog = true;
+			p.texture[0] = null;
+			p.setColor(colorF[0], colorF[1], colorF[2], 1.0F);
 
-				Primitive p = this._queuePick.reservePrimitive();
+			p.copyStateFrom(renderStateOutline);
+			this._queuePick.queue(p, null);
 
-				p.vertex = _vBuffer;
-				p.index = _iBuffer;
-				p.num = _iBuffer.getNumIndex() / 2;
-				p.type = Primitive.Type.LINES;
-				p.nolight = true;
-				p.nofog = true;
-				p.texture[0] = null;
-				p.setColor(colorF[0], colorF[1], colorF[2], 1.0F);
-
-				p.copyStateFrom(renderStateOutline);
-				this._queuePick.queue(p, null);
-			}
 		}
 	}
 }
