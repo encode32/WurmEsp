@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+//import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,6 +46,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	
 	public static CaveDataBuffer _caveBuffer = null;
 	public static List<float[]> _terrain = new ArrayList<float[]>();
+	//public static List<float[]> _oreql = new ArrayList<float[]>();
 
 	public static enum SEARCHTYPE {
 		NONE, HOVER, MODEL, BOTH
@@ -63,7 +65,11 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean xrayrefreshthread = true;
 	public static int xraydiameter = 32;
 	public static int xrayrefreshrate = 5;
-	
+	/*
+	public static boolean xrayshowql = true;
+	public static int xrayqldiameter = 6;
+	public static int serversize = 1024;
+	*/
 
 	public static PickRenderer _pickRenderer;
 
@@ -95,6 +101,9 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				case "xray":
 					xray = !xray;
 					hud.consoleOutput("ESP xray changed");
+					break;
+				case "search":
+					hud.consoleOutput("Usage: esp search {h/m/hm/off} <name>");
 					break;
 				default:
 					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|champions|xray}");
@@ -161,6 +170,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
 		xraydiameter = Integer.parseInt(properties.getProperty("xraydiameter", Integer.toString(xraydiameter)));
 		xrayrefreshrate = Integer.parseInt(properties.getProperty("xrayrefreshrate", Integer.toString(xrayrefreshrate)));
+		//serversize = Integer.parseInt(properties.getProperty("serversize", Integer.toString(serversize)));
 
 		Unit.colorPlayers = colorStringToFloatA(
 				properties.getProperty("colorPlayers", colorFloatAToString(Unit.colorPlayers)));
@@ -175,21 +185,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
 		Unit.colorChampions = colorStringToFloatA(
 				properties.getProperty("colorChampions", colorFloatAToString(Unit.colorChampions)));
-		/*
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_IRON, Color.RED.darker());
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_COPPER, Color.GREEN);
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_TIN, Color.GRAY);
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GOLD, Color.YELLOW.darker());
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ADAMANTINE, Color.CYAN);
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GLIMMERSTEEL, Color.YELLOW.brighter());
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_SILVER, Color.LIGHT_GRAY);
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_LEAD, Color.PINK.darker().darker());
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, new Color(235, 235, 235));
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, Color.BLACK);
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, Color.WHITE);
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SANDSTONE, Color.YELLOW.darker().darker());
-		XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, Color.WHITE.darker());
-		*/
+		
 		String oreColorOreIron = properties.getProperty("oreColorOreIron", "default");
 		if(!oreColorOreIron.equals("default"))
 		{
@@ -330,7 +326,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 	@Override
 	public void init() {
-		logger.fine("Initializing");
+		logger.log(Level.INFO, "Initializing");
 
 		try {
 			xrayManager = new XRayManager();
@@ -512,10 +508,10 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						return null;
 					});
-
+			
 			logger.fine("Loaded");
 		} catch (Throwable e) {
-			logger.log(Level.SEVERE, "Error loading mod", e);
+			logger.log(Level.SEVERE, "Error loading mod", e.getMessage());
 		}
 	}
 
@@ -546,4 +542,13 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 			throw new RuntimeException(e);
 		}
 	}
+	
+	//credit @bdew: https://github.com/bdew-wurm/LiveHudMap/blob/10a6a22eff60b9ada8fdaf8005f8f0401e2eab67/src/main/java/org/gotti/wurmonline/clientmods/livehudmap/renderer/MapRendererCave.java#L95
+	/*
+	public static int getQl(int x ,int y){
+		Random r = new Random();
+		r.setSeed((x + y * serversize) * 789221L);
+		return 20 + r.nextInt(80);
+	}
+	*/
 }

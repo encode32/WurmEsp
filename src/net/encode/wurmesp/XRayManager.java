@@ -3,6 +3,7 @@ package net.encode.wurmesp;
 import java.awt.Color;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import java.util.Iterator;
 
 import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
@@ -13,6 +14,7 @@ import com.wurmonline.client.renderer.backend.Primitive;
 import com.wurmonline.client.renderer.backend.Queue;
 import com.wurmonline.client.renderer.backend.RenderState;
 import com.wurmonline.client.renderer.backend.VertexBuffer;
+//import com.wurmonline.client.renderer.gui.text.TextFont;
 import com.wurmonline.mesh.Tiles.Tile;
 
 public class XRayManager {
@@ -30,6 +32,7 @@ public class XRayManager {
 	
 	public void _refreshData() {
 		WurmEspMod._terrain.clear();
+		//WurmEspMod._oreql.clear();
 		if(!this._world.isOwnBodyAdded())
 		{
 			return;
@@ -69,6 +72,34 @@ public class XRayManager {
 				}
 			}
 		}
+		/*
+		if(WurmEspMod.xrayshowql)
+		{
+			size = WurmEspMod.xrayqldiameter;
+			sx = px - size / 2;
+			sy = py - size / 2;
+
+			for (int x = 0; x < size; x++) {
+				for (int y = size - 1; y >= 0; y--) {
+					float tileX = x + sx;
+					float tileY = y + sy;
+					
+					Tile tile = WurmEspMod._caveBuffer.getTileType((int)tileX, (int)tileY);
+					if (tile != null && tile.isOreCave()) {
+
+						float curX = tileX * 4;
+						float curY = tileY * 4;
+
+						float x0 = curX + 2F;
+						float y0 = curY + 2F;
+						float ql = WurmEspMod.getQl((int)tileX, (int)tileY);
+						
+						WurmEspMod._oreql.add(new float[]{x0,y0,ql});
+					}
+				}
+			}
+		}
+		*/
 	}
 	
 	public void _queueXray() {
@@ -76,7 +107,8 @@ public class XRayManager {
 		{
 			return;
 		}
-		for (float[] terraindata : WurmEspMod._terrain) {
+		for (Iterator iterator = WurmEspMod._terrain.iterator();iterator.hasNext();) {
+			float[] terraindata = (float[]) iterator.next();
 			float x0 = terraindata[0];
 			float y0 = terraindata[1];
 			float x1 = terraindata[2];
@@ -135,4 +167,15 @@ public class XRayManager {
 
 		}
 	}
+	/*
+	public void _queueQl()
+	{
+		TextFont text = TextFont.getText();
+		
+		for(float[] qlinfo : WurmEspMod._oreql)
+		{
+			
+		}
+	}
+	*/
 }
