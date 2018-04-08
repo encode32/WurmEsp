@@ -46,6 +46,9 @@ public class XRayManager {
 		int size = WurmEspMod.xraydiameter;
 		int sx = px - size / 2;
 		int sy = py - size / 2;
+		
+		final float ox = this._world.getRenderOriginX();
+                final float oy = this._world.getRenderOriginY();
 
 		for (int x = 0; x < size; x++) {
 			for (int y = size - 1; y >= 0; y--) {
@@ -58,10 +61,10 @@ public class XRayManager {
 					float[] colorF = { (float) color.getRed() / 255, (float) color.getGreen() / 255,
 							(float) color.getBlue() / 255 };
 
-					float curX = tileX * 4;
-					float curY = tileY * 4;
-					float nextX = (tileX + 1) * 4;
-					float nextY = (tileY + 1) * 4;
+					float curX = tileX * 4 - oxo;
+					float curY = tileY * 4 - ox;
+					float nextX = (tileX + 1) * 4 - oy;
+					float nextY = (tileY + 1) * 4 - oy;
 
 					float x0 = curX + 0.2F;
 					float y0 = curY + 0.2F;
