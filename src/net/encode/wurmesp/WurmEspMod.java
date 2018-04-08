@@ -16,6 +16,7 @@ import org.gotti.wurmunlimited.modloader.interfaces.PreInitable;
 import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 
 import com.wurmonline.client.game.CaveDataBuffer;
+import com.wurmonline.client.game.NearTerrainDataBuffer;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickRenderer;
@@ -42,10 +43,14 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	private List<Unit> toRemove = new ArrayList<Unit>();
 	
 	private CronoManager cronoManager;
+	private CronoManager tilesCronoManager;
 	private XRayManager xrayManager;
+	private TilesCloseByManager tilesManager;
 	
 	public static CaveDataBuffer _caveBuffer = null;
+	public static NearTerrainDataBuffer _terrainBuffer = null;
 	public static List<float[]> _terrain = new ArrayList<float[]>();
+	public static List<float[]> _closeByTerrain = new ArrayList<float[]>();
 	//public static List<float[]> _oreql = new ArrayList<float[]>();
 
 	public static enum SEARCHTYPE {
@@ -60,6 +65,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean specials = true;
 	public static boolean uniques = true;
 	public static boolean champions = true;
+	public static boolean tilescloseby = false;
 	public static boolean xray = false;
 	public static boolean xraythread = true;
 	public static boolean xrayrefreshthread = true;
@@ -80,27 +86,31 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				switch (data[1]) {
 				case "players":
 					players = !players;
-					hud.consoleOutput("ESP players changed");
+					hud.consoleOutput("ESP players changed to: " + Boolean.toString(players));
 					break;
 				case "mobs":
 					mobs = !mobs;
-					hud.consoleOutput("ESP mobs changed");
+					hud.consoleOutput("ESP mobs changed to: " + Boolean.toString(mobs));
 					break;
 				case "specials":
 					specials = !specials;
-					hud.consoleOutput("ESP specials changed");
+					hud.consoleOutput("ESP specials changed to: " + Boolean.toString(specials));
 					break;
 				case "uniques":
 					uniques = !uniques;
-					hud.consoleOutput("ESP uniques changed");
+					hud.consoleOutput("ESP uniques changed to: " + Boolean.toString(uniques));
 					break;
 				case "champions":
 					champions = !champions;
-					hud.consoleOutput("ESP champions changed");
+					hud.consoleOutput("ESP champions changed to: " + Boolean.toString(champions));
 					break;
 				case "xray":
 					xray = !xray;
-					hud.consoleOutput("ESP xray changed");
+					hud.consoleOutput("ESP xray changed to: " + Boolean.toString(xray));
+					break;
+				case "tilescloseby":
+					tilescloseby = !tilescloseby;
+					hud.consoleOutput("ESP tilescloseby changed to: " + Boolean.toString(tilescloseby));
 					break;
 				case "search":
 					hud.consoleOutput("Usage: esp search {h/m/hm/off} <name>");
@@ -165,6 +175,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		specials = Boolean.valueOf(properties.getProperty("specials", Boolean.toString(specials)));
 		uniques = Boolean.valueOf(properties.getProperty("uniques", Boolean.toString(uniques)));
 		champions = Boolean.valueOf(properties.getProperty("champions", Boolean.toString(champions)));
+		tilescloseby = Boolean.valueOf(properties.getProperty("tilescloseby", Boolean.toString(tilescloseby)));
 		xray = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xray)));
 		xraythread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xraythread)));
 		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
@@ -330,7 +341,9 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 		try {
 			xrayManager = new XRayManager();
+			tilesManager = new TilesCloseByManager();
 			cronoManager = new CronoManager(xrayrefreshrate*1000);
+			tilesCronoManager = new CronoManager(1000);
 			
 			ClassPool classPool = HookManager.getInstance().getClassPool();
 
@@ -371,27 +384,32 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 								unit.renderUnit(queuePick);
 							}
 						}
+						if (tilescloseby && world.getPlayer().getPos().getLayer() >= 0) {
+							tilesManager._setWQ(world,queuePick);
+							
+							if(tilesManager._first)
+							{ 
+								tilesManager._refreshData();
+								tilesManager._first = false;
+							}
+							else if(tilesCronoManager.hasEnded())
+							{
+								tilesManager._refreshData();
+								tilesCronoManager.restart(1000);
+							}
+							
+							
+							Thread tilesThread = new Thread(() -> {
+								tilesManager._queueTiles();
+							});
+							
+							tilesThread.setPriority(Thread.MAX_PRIORITY);
+							
+							tilesThread.start();
+						}
 						if (xray && world.getPlayer().getPos().getLayer() < 0) {
 							xrayManager._setWQ(world,queuePick);
 							
-							if(cronoManager.hasEnded())
-							{
-								if(xrayrefreshthread)
-								{
-									Thread refreshThread = new Thread(() -> {
-										xrayManager._refreshData();
-									});
-									
-									refreshThread.setPriority(Thread.MAX_PRIORITY);
-									
-									refreshThread.start();
-								}
-								else
-								{
-									xrayManager._refreshData();
-								}
-								cronoManager.restart(xrayrefreshrate*1000);
-							}
 							if(xrayManager._first)
 							{ 
 								if(xrayrefreshthread)
@@ -410,6 +428,25 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 								}
 								xrayManager._first = false;
 							}
+							else if(cronoManager.hasEnded())
+							{
+								if(xrayrefreshthread)
+								{
+									Thread refreshThread = new Thread(() -> {
+										xrayManager._refreshData();
+									});
+									
+									refreshThread.setPriority(Thread.MAX_PRIORITY);
+									
+									refreshThread.start();
+								}
+								else
+								{
+									xrayManager._refreshData();
+								}
+								cronoManager.restart(xrayrefreshrate*1000);
+							}
+							
 							
 							if(xraythread)
 							{

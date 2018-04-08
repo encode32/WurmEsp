@@ -19,7 +19,7 @@ public class WurmEspWindow extends WWindow{
 	    this.mainPanel = new WurmBorderPanel("Esp");
 	    
 	    WurmArrayPanel<WButton> buttons = new WurmArrayPanel("Esp buttons", 0);
-	    
+	    //------------------------------------------
 	    WButton button = new WButton(WurmEspMod.players ? "Players On" : "Players Off", new ButtonListener()
 	    {
 	        public void buttonPressed(WButton p0) {}
@@ -34,7 +34,7 @@ public class WurmEspWindow extends WWindow{
 	    
 	    setWButtonStateColor(button,WurmEspMod.players);
 	    buttons.addComponent(button);
-	    
+	    //------------------------------------------
 	    button = new WButton(WurmEspMod.mobs ? "Mobs On" : "Mobs Off", new ButtonListener()
 	    {
 	        public void buttonPressed(WButton p0) {}
@@ -49,7 +49,7 @@ public class WurmEspWindow extends WWindow{
 	    
 	    setWButtonStateColor(button,WurmEspMod.mobs);
 	    buttons.addComponent(button);
-	    
+	    //------------------------------------------
 	    button = new WButton(WurmEspMod.specials ? "Specials On" : "Specials Off", new ButtonListener()
 	    {
 	        public void buttonPressed(WButton p0) {}
@@ -64,7 +64,7 @@ public class WurmEspWindow extends WWindow{
 	    
 	    setWButtonStateColor(button,WurmEspMod.specials);
 	    buttons.addComponent(button);
-	    
+	    //------------------------------------------
 	    button = new WButton(WurmEspMod.uniques ? "Uniques On" : "Uniques Off", new ButtonListener()
 	    {
 	        public void buttonPressed(WButton p0) {}
@@ -79,7 +79,7 @@ public class WurmEspWindow extends WWindow{
 	    
 	    setWButtonStateColor(button,WurmEspMod.uniques);
 	    buttons.addComponent(button);
-	    
+	    //------------------------------------------
 	    button = new WButton(WurmEspMod.champions ? "Champions On" : "Champions Off", new ButtonListener()
 	    {
 	        public void buttonPressed(WButton p0) {}
@@ -94,7 +94,7 @@ public class WurmEspWindow extends WWindow{
 	    
 	    setWButtonStateColor(button,WurmEspMod.champions);
 	    buttons.addComponent(button);
-	    
+	    //------------------------------------------
 	    button = new WButton(WurmEspMod.xray ? "Xray On" : "Xray Off", new ButtonListener()
 	    {
 	        public void buttonPressed(WButton p0) {}
@@ -102,14 +102,29 @@ public class WurmEspWindow extends WWindow{
 	        public void buttonClicked(WButton p0)
 	        {
 	        	WurmEspMod.xray = !WurmEspMod.xray;
-	        	p0.label = WurmEspMod.champions ? "Xray On" : "Xray Off";
+	        	p0.label = WurmEspMod.xray ? "Xray On" : "Xray Off";
 	        	setWButtonStateColor(p0,WurmEspMod.xray);
 	        }
 	    });
 	    
 	    setWButtonStateColor(button,WurmEspMod.xray);
 	    buttons.addComponent(button);
+	    //------------------------------------------
+	    button = new WButton(WurmEspMod.tilescloseby ? "Tiles On" : "Tiles Off", new ButtonListener()
+	    {
+	        public void buttonPressed(WButton p0) {}
+	        
+	        public void buttonClicked(WButton p0)
+	        {
+	        	WurmEspMod.tilescloseby = !WurmEspMod.tilescloseby;
+	        	p0.label = WurmEspMod.tilescloseby ? "Tiles On" : "Tiles Off";
+	        	setWButtonStateColor(p0,WurmEspMod.tilescloseby);
+	        }
+	    });
 	    
+	    setWButtonStateColor(button,WurmEspMod.tilescloseby);
+	    buttons.addComponent(button);
+	    //------------------------------------------
 	    this.mainPanel.setComponent(buttons, 1);
 	    setComponent(this.mainPanel);
 	}

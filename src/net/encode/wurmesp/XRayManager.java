@@ -48,7 +48,7 @@ public class XRayManager {
 		int sy = py - size / 2;
 		
 		final float ox = this._world.getRenderOriginX();
-                final float oy = this._world.getRenderOriginY();
+        final float oy = this._world.getRenderOriginY();
 
 		for (int x = 0; x < size; x++) {
 			for (int y = size - 1; y >= 0; y--) {
@@ -61,9 +61,9 @@ public class XRayManager {
 					float[] colorF = { (float) color.getRed() / 255, (float) color.getGreen() / 255,
 							(float) color.getBlue() / 255 };
 
-					float curX = tileX * 4 - oxo;
-					float curY = tileY * 4 - ox;
-					float nextX = (tileX + 1) * 4 - oy;
+					float curX = tileX * 4 - ox;
+					float curY = tileY * 4 - oy;
+					float nextX = (tileX + 1) * 4 - ox;
 					float nextY = (tileY + 1) * 4 - oy;
 
 					float x0 = curX + 0.2F;
@@ -177,7 +177,7 @@ public class XRayManager {
 		
 		for(float[] qlinfo : WurmEspMod._oreql)
 		{
-			
+			//TODO DigitRenderer
 		}
 	}
 	*/
