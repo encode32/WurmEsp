@@ -447,7 +447,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					});
 
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.MobileModelRenderable",
-					"removed", "()V", () -> (proxy, method, args) -> {
+					"removed", "(Z)V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
 						PickableUnit item = (PickableUnit) proxy;
 
@@ -486,7 +486,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					});
 
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.GroundItemCellRenderable",
-					"removed", "()V", () -> (proxy, method, args) -> {
+					"removed", "(Z)V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
 						Class<?> cls = proxy.getClass();
 						GroundItemData item = ReflectionUtil.getPrivateField(proxy,
