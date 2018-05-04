@@ -1,18 +1,11 @@
 package net.encode.wurmesp;
 
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 import java.util.Iterator;
 
 import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
-import com.wurmonline.client.renderer.PickRenderer;
-import com.wurmonline.client.renderer.PickRenderer.CustomPickOutlineRender;
-import com.wurmonline.client.renderer.backend.IndexBuffer;
-import com.wurmonline.client.renderer.backend.Primitive;
 import com.wurmonline.client.renderer.backend.Queue;
-import com.wurmonline.client.renderer.backend.RenderState;
-import com.wurmonline.client.renderer.backend.VertexBuffer;
+import net.encode.wurmesp.util.RenderUtils;
 
 public class TilesCloseByManager {
 	private Queue _queuePick;
@@ -30,10 +23,6 @@ public class TilesCloseByManager {
 	
 	public void _refreshData() {
 		WurmEspMod._closeByTerrain.clear();
-		if(!this._world.isOwnBodyAdded())
-		{
-			return;
-		}
 		WurmEspMod._terrainBuffer = this._world.getNearTerrainBuffer();
 		
 		PlayerPosition pos = this._world.getPlayer().getPos();
@@ -84,41 +73,21 @@ public class TilesCloseByManager {
 		for (Iterator iterator = WurmEspMod._closeByTerrain.iterator();iterator.hasNext();) {
 			float[] t = (float[]) iterator.next();
 			
-			VertexBuffer _vBuffer = VertexBuffer.create(VertexBuffer.Usage.PICK, 4, true, false, false, false,
-					false, 0, 0, false, true);
-			FloatBuffer vdata = _vBuffer.lock();
-			vdata.put(t);
-			_vBuffer.unlock();
-
-			IndexBuffer _iBuffer = IndexBuffer.create(24, false, true);
-			ShortBuffer idata = _iBuffer.lock();
-			idata.put(new short[] { 1, 0, 0, 2, 2, 3, 3, 1});
-			_iBuffer.unlock();
+			float[] color;
+			if(isFlat(t)) {
+				color = new float[]{0.0F, 1.0F, 0.0F, 0.5F};
+			}
+			else {
+				color = new float[]{1.0F, 1.0F, 0.0F, 0.5F};
+			}
 			
-			PickRenderer tmp1257_1254 = WurmEspMod._pickRenderer;
-			CustomPickOutlineRender customPickOutline = tmp1257_1254.new CustomPickOutlineRender();
-
-			RenderState renderStateOutline = new RenderState();
-			renderStateOutline.alphaval = 0.5F;
-			renderStateOutline.twosided = false;
-			renderStateOutline.depthtest = Primitive.TestFunc.LESS;
-			renderStateOutline.depthwrite = false;
-			renderStateOutline.blendmode = Primitive.BlendMode.ALPHABLEND;
-			renderStateOutline.customstate = customPickOutline;
-
-			Primitive p = this._queuePick.reservePrimitive();
-
-			p.vertex = _vBuffer;
-			p.index = _iBuffer;
-			p.num = _iBuffer.getNumIndex() / 2;
-			p.type = Primitive.Type.LINES;
-			p.nolight = true;
-			p.nofog = true;
-			p.texture[0] = null;
-			p.setColor(1.0F, 1.0F, 0.0F, 0.5F);
-
-			p.copyStateFrom(renderStateOutline);
-			this._queuePick.queue(p, null);
+			int[] indexdata = new int[] { 1, 0, 0, 2, 2, 3, 3, 1};
+			
+			RenderUtils.renderPrimitiveLines(4, t, indexdata, this._queuePick, color);
 		}
+	}
+	
+	private boolean isFlat(float[] tile) {
+		return (tile[1] == tile[4] && tile[4] == tile[7] && tile[7] == tile[10]);
 	}
 }

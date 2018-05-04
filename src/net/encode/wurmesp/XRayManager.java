@@ -1,21 +1,15 @@
 package net.encode.wurmesp;
 
 import java.awt.Color;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 import java.util.Iterator;
 
 import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
-import com.wurmonline.client.renderer.PickRenderer;
-import com.wurmonline.client.renderer.PickRenderer.CustomPickOutlineRender;
-import com.wurmonline.client.renderer.backend.IndexBuffer;
-import com.wurmonline.client.renderer.backend.Primitive;
 import com.wurmonline.client.renderer.backend.Queue;
-import com.wurmonline.client.renderer.backend.RenderState;
-import com.wurmonline.client.renderer.backend.VertexBuffer;
 //import com.wurmonline.client.renderer.gui.text.TextFont;
 import com.wurmonline.mesh.Tiles.Tile;
+
+import net.encode.wurmesp.util.RenderUtils;
 
 public class XRayManager {
 	private Queue _queuePick;
@@ -117,17 +111,14 @@ public class XRayManager {
 			float x1 = terraindata[2];
 			float y1 = terraindata[3];
 			
-			float[] colorF = new float[]{terraindata[4],terraindata[5],terraindata[6]};
+			float[] color = new float[]{terraindata[4],terraindata[5],terraindata[6], 1.0F};
 
 			PlayerPosition pos = this._world.getPlayer().getPos();
 
 			float z0 = pos.getH();
 			float z1 = z0 + 3;
-
-			VertexBuffer _vBuffer = VertexBuffer.create(VertexBuffer.Usage.PICK, 8, true, false, false, false,
-					false, 0, 0, false, true);
-			FloatBuffer vdata = _vBuffer.lock();
-			vdata.put(new float[] { 
+			
+			float[] vertexdata = new float[] { 
 					x1, z0, y0, 
 					x1, z1, y0, 
 					x0, z1, y0, 
@@ -135,38 +126,11 @@ public class XRayManager {
 					x1, z0, y1, 
 					x1, z1, y1, 
 					x0, z1, y1, 
-					x0, z0, y1 });
-			_vBuffer.unlock();
-
-			IndexBuffer _iBuffer = IndexBuffer.create(24, false, true);
-			ShortBuffer idata = _iBuffer.lock();
-			idata.put(new short[] { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 });
-			_iBuffer.unlock();
-
-			PickRenderer tmp1257_1254 = WurmEspMod._pickRenderer;
-			CustomPickOutlineRender customPickOutline = tmp1257_1254.new CustomPickOutlineRender();
-
-			RenderState renderStateOutline = new RenderState();
-			renderStateOutline.alphaval = 0.5F;
-			renderStateOutline.twosided = false;
-			renderStateOutline.depthtest = Primitive.TestFunc.LESS;
-			renderStateOutline.depthwrite = false;
-			renderStateOutline.blendmode = Primitive.BlendMode.ALPHABLEND;
-			renderStateOutline.customstate = customPickOutline;
-
-			Primitive p = this._queuePick.reservePrimitive();
-
-			p.vertex = _vBuffer;
-			p.index = _iBuffer;
-			p.num = _iBuffer.getNumIndex() / 2;
-			p.type = Primitive.Type.LINES;
-			p.nolight = true;
-			p.nofog = true;
-			p.texture[0] = null;
-			p.setColor(colorF[0], colorF[1], colorF[2], 1.0F);
-
-			p.copyStateFrom(renderStateOutline);
-			this._queuePick.queue(p, null);
+					x0, z0, y1 };
+			
+			int[] indexdata = new int[] { 0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7 };
+			
+			RenderUtils.renderPrimitiveLines(8, vertexdata, indexdata, this._queuePick, color);
 
 		}
 	}

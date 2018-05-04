@@ -125,6 +125,21 @@ public class WurmEspWindow extends WWindow{
 	    setWButtonStateColor(button,WurmEspMod.tilescloseby);
 	    buttons.addComponent(button);
 	    //------------------------------------------
+	    button = new WButton(WurmEspMod.deedsize ? "Deed On" : "Deed Off", new ButtonListener()
+	    {
+	        public void buttonPressed(WButton p0) {}
+	        
+	        public void buttonClicked(WButton p0)
+	        {
+	        	WurmEspMod.deedsize = !WurmEspMod.deedsize;
+	        	p0.label = WurmEspMod.deedsize ? "Deed On" : "Deed Off";
+	        	setWButtonStateColor(p0,WurmEspMod.deedsize);
+	        }
+	    });
+	    
+	    setWButtonStateColor(button,WurmEspMod.deedsize);
+	    buttons.addComponent(button);
+	    //------------------------------------------
 	    this.mainPanel.setComponent(buttons, 1);
 	    setComponent(this.mainPanel);
 	}
