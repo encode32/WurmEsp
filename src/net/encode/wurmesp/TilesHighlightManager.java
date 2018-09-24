@@ -127,7 +127,7 @@ public class TilesHighlightManager {
 		{
 			return;
 		}
-		for (Iterator iterator = WurmEspMod._tilesHighlightTerrain.iterator();iterator.hasNext();) {
+		for (Iterator<float[]> iterator = WurmEspMod._tilesHighlightTerrain.iterator();iterator.hasNext();) {
 			float[] t = (float[]) iterator.next();
 			
 			float[] color = new float[]{1.0F, 0.0F, 0.0F, 1.0F};

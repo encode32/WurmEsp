@@ -70,7 +70,7 @@ public class TilesCloseByManager {
 		{
 			return;
 		}
-		for (Iterator iterator = WurmEspMod._closeByTerrain.iterator();iterator.hasNext();) {
+		for (Iterator<float[]> iterator = WurmEspMod._closeByTerrain.iterator();iterator.hasNext();) {
 			float[] t = (float[]) iterator.next();
 			
 			float[] color;

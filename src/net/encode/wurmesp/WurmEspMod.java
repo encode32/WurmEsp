@@ -721,7 +721,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					ReflectionUtil.getField(hud.getClass(), "mainMenu"));
 			mainMenu.registerComponent("Esp", wurmEspWindow);
 
-			List<WurmComponent> components = (List) ReflectionUtil.getPrivateField(hud,
+			List<WurmComponent> components = (List<WurmComponent>) ReflectionUtil.getPrivateField(hud,
 					ReflectionUtil.getField(hud.getClass(), "components"));
 			components.add(wurmEspWindow);
 

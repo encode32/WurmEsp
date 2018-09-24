@@ -9,16 +9,16 @@ public class WurmEspWindow extends WWindow{
 	private float[] red = {1.0f,0.0f,0.0f};
     private float[] green = {0.0f,1.0f,0.0f};
     
-	@SuppressWarnings("unchecked")
 	public WurmEspWindow(World world)
 	{
 		super("Esp", true);
 	    setTitle("Esp");
 	    this.resizable = true;
+	    this.closeable = true;
 	    setInitialSize(85, 128, true);
 	    this.mainPanel = new WurmBorderPanel("Esp");
 	    
-	    WurmArrayPanel<WButton> buttons = new WurmArrayPanel("Esp buttons", 0);
+	    WurmArrayPanel<WButton> buttons = new WurmArrayPanel<WButton>("Esp buttons", 0);
 	    //------------------------------------------
 	    WButton button = new WButton(WurmEspMod.players ? "Players On" : "Players Off", new ButtonListener()
 	    {

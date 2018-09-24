@@ -104,7 +104,7 @@ public class XRayManager {
 		{
 			return;
 		}
-		for (Iterator iterator = WurmEspMod._terrain.iterator();iterator.hasNext();) {
+		for (Iterator<float[]> iterator = WurmEspMod._terrain.iterator();iterator.hasNext();) {
 			float[] terraindata = (float[]) iterator.next();
 			float x0 = terraindata[0];
 			float y0 = terraindata[1];
