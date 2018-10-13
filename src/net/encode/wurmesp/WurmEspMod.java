@@ -71,7 +71,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean mobs = false;
 	public static boolean specials = true;
 	public static boolean uniques = true;
-	public static boolean champions = true;
+	public static boolean conditioned = true;
 	public static boolean tilescloseby = false;
 	public static boolean deedsize = false;
 	public static boolean tileshighlight = false;
@@ -109,9 +109,9 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					uniques = !uniques;
 					hud.consoleOutput("ESP uniques changed to: " + Boolean.toString(uniques));
 					break;
-				case "champions":
-					champions = !champions;
-					hud.consoleOutput("ESP champions changed to: " + Boolean.toString(champions));
+				case "conditioned":
+					conditioned = !conditioned;
+					hud.consoleOutput("ESP champions changed to: " + Boolean.toString(conditioned));
 					break;
 				case "xray":
 					xray = !xray;
@@ -136,7 +136,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					hud.consoleOutput("Usage: esp planner clear");
 					break;
 				default:
-					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|champions|xray|tilescloseby|deedsize}");
+					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|conditioned|xray|tilescloseby|deedsize}");
 				}
 				return true;
 			} else if (data.length > 2) {
@@ -253,7 +253,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		mobs = Boolean.valueOf(properties.getProperty("mobs", Boolean.toString(mobs)));
 		specials = Boolean.valueOf(properties.getProperty("specials", Boolean.toString(specials)));
 		uniques = Boolean.valueOf(properties.getProperty("uniques", Boolean.toString(uniques)));
-		champions = Boolean.valueOf(properties.getProperty("champions", Boolean.toString(champions)));
+		conditioned = Boolean.valueOf(properties.getProperty("conditioned", Boolean.toString(conditioned)));
 		tilescloseby = Boolean.valueOf(properties.getProperty("tilescloseby", Boolean.toString(tilescloseby)));
 		deedsize = Boolean.valueOf(properties.getProperty("deedsize", Boolean.toString(deedsize)));
 		xray = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xray)));
@@ -274,8 +274,8 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				properties.getProperty("colorSpecials", colorFloatAToString(Unit.colorSpecials)));
 		Unit.colorUniques = colorStringToFloatA(
 				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
-		Unit.colorChampions = colorStringToFloatA(
-				properties.getProperty("colorChampions", colorFloatAToString(Unit.colorChampions)));
+		Unit.colorConditioned = colorStringToFloatA(
+				properties.getProperty("colorConditioned", colorFloatAToString(Unit.colorConditioned)));
 		
 		String oreColorOreIron = properties.getProperty("oreColorOreIron", "default");
 		if(!oreColorOreIron.equals("default"))
@@ -411,6 +411,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		Unit.aggroMOBS = properties.getProperty("aggroMOBS").split(";");
 		Unit.uniqueMOBS = properties.getProperty("uniqueMOBS").split(";");
 		Unit.specialITEMS = properties.getProperty("specialITEMS").split(";");
+		Unit.conditionedMOBS = properties.getProperty("conditionedMOBS").split(";");
 
 		logger.log(Level.INFO, "Config loaded");
 	}
@@ -462,10 +463,10 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						Queue queuePick = ReflectionUtil.getPrivateField(proxy,
 								ReflectionUtil.getField(cls, "queuePick"));
-
+						
 						for (Unit unit : this.pickableUnits) {
 							if ((players && unit.isPlayer()) || (uniques && unit.isUnique())
-									|| (champions && unit.isChampion()) || (mobs && unit.isMob())
+									|| (conditioned && unit.isConditioned()) || (mobs && unit.isMob())
 									|| (specials && unit.isSpecial())) {
 								unit.renderUnit(queuePick);
 							}
@@ -713,10 +714,8 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	@SuppressWarnings("unchecked")
 	private void initEspWR() {
 		try {
-			World world = (World) ReflectionUtil.getPrivateField(hud, ReflectionUtil.getField(hud.getClass(), "world"));
-
-			WurmEspWindow wurmEspWindow = new WurmEspWindow(world);
-
+			WurmEspWindow wurmEspWindow = new WurmEspWindow();
+			
 			MainMenu mainMenu = (MainMenu) ReflectionUtil.getPrivateField(hud,
 					ReflectionUtil.getField(hud.getClass(), "mainMenu"));
 			mainMenu.registerComponent("Esp", wurmEspWindow);

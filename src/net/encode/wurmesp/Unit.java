@@ -24,13 +24,15 @@ public class Unit {
 	public static float[] colorMobsAggro = {0.0f, 0.0f, 0.0f};
 	public static float[] colorSpecials = {0.0f, 0.0f, 0.0f};
 	public static float[] colorUniques = {0.0f, 0.0f, 0.0f};
-	public static float[] colorChampions = {0.0f, 0.0f, 0.0f};
+	public static float[] colorConditioned = {0.0f, 0.0f, 0.0f};
 	
 	public static String[] aggroMOBS;
 	
 	public static String[] uniqueMOBS;
 	
 	public static String[] specialITEMS;
+	
+	public static String[] conditionedMOBS;
 	
 	public Unit(long id, PickableUnit pickableUnit, String modelName, String hoverName)
 	{
@@ -94,9 +96,16 @@ public class Unit {
 		return false;
 	}
 	
-	public boolean isChampion()
+	public boolean isConditioned()
 	{
-		return this.getHoverName().contains("champion");
+		for(String condition : conditionedMOBS)
+		{
+			if(this.getHoverName().contains(condition))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public boolean isUnique()
@@ -162,9 +171,9 @@ public class Unit {
 		{
 			this.color = colorUniques;
 		}
-		else if(this.isChampion())
+		else if(this.isConditioned())
 		{
-			this.color = colorChampions;
+			this.color = colorConditioned;
 		}
 		else if(this.isAggroMob())
 		{
