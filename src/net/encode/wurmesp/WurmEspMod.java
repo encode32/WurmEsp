@@ -20,6 +20,7 @@ import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 import com.wurmonline.client.comm.SimpleServerConnectionClass;
 import com.wurmonline.client.game.CaveDataBuffer;
 import com.wurmonline.client.game.NearTerrainDataBuffer;
+import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickRenderer;
@@ -45,17 +46,21 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	private List<Unit> pickableUnits = new ArrayList<Unit>();
 	private List<Unit> toRemove = new ArrayList<Unit>();
 	
-	private CronoManager cronoManager;
-	private CronoManager tilesCronoManager;
+	private CronoManager xrayCronoManager;
+	private CronoManager tilesCloseByCronoManager;
 	private CronoManager tilesHighlightCronoManager;
+	private CronoManager tilesCloseByWalkableCronoManager;
 	private XRayManager xrayManager;
-	private TilesCloseByManager tilesManager;
+	private TilesCloseByManager tilesCloseByManager;
 	public static TilesHighlightManager tilesHighlightManager;
+	private TilesWalkableManager tilesCloseByWalkableManager;
 	
 	public static CaveDataBuffer _caveBuffer = null;
 	public static NearTerrainDataBuffer _terrainBuffer = null;
+	public static NearTerrainDataBuffer _terrainBuffer2 = null;
 	public static List<float[]> _terrain = new ArrayList<float[]>();
 	public static List<float[]> _closeByTerrain = new ArrayList<float[]>();
+	public static List<float[]> _closeByWalkableTerrain = new ArrayList<float[]>();
 	public static List<int[]> _tilesHighlightBase = new ArrayList<int[]>();
 	public static List<float[]> _tilesHighlightTerrain = new ArrayList<float[]>();
 	//public static List<float[]> _oreql = new ArrayList<float[]>();
@@ -71,15 +76,17 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean mobs = false;
 	public static boolean specials = true;
 	public static boolean uniques = true;
-	public static boolean champions = true;
+	public static boolean conditioned = true;
 	public static boolean tilescloseby = false;
 	public static boolean deedsize = false;
 	public static boolean tileshighlight = false;
+	public static boolean tilesclosebynotrideable = false;
 	public static boolean xray = false;
 	public static boolean xraythread = true;
 	public static boolean xrayrefreshthread = true;
 	public static int xraydiameter = 32;
 	public static int xrayrefreshrate = 5;
+	public static int tilenotrideable = 40;
 	/*
 	public static boolean xrayshowql = true;
 	public static int xrayqldiameter = 6;
@@ -109,9 +116,9 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					uniques = !uniques;
 					hud.consoleOutput("ESP uniques changed to: " + Boolean.toString(uniques));
 					break;
-				case "champions":
-					champions = !champions;
-					hud.consoleOutput("ESP champions changed to: " + Boolean.toString(champions));
+				case "conditioned":
+					conditioned = !conditioned;
+					hud.consoleOutput("ESP champions changed to: " + Boolean.toString(conditioned));
 					break;
 				case "xray":
 					xray = !xray;
@@ -136,7 +143,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					hud.consoleOutput("Usage: esp planner clear");
 					break;
 				default:
-					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|champions|xray|tilescloseby|deedsize}");
+					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|conditioned|xray|tilescloseby|deedsize}");
 				}
 				return true;
 			} else if (data.length > 2) {
@@ -170,7 +177,19 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						hud.consoleOutput("Planner data cleared.");
 						break;
 					}
-					if(data.length == 4 && data[2].equals("square")) {
+					else if(data.length == 3 && data[2].equals("tile"))
+					{
+						PlayerPosition pos = WurmEspMod.hud.getWorld().getPlayer().getPos();
+						int tileX = pos.getTileX();
+						int tileY = pos.getTileY();
+						
+						tilesHighlightManager._addData(tileX, tileY);
+						
+						tileshighlight = true;
+						
+						hud.consoleOutput("Added planner data. [TileX: "+String.valueOf(tileX)+"][tileY: "+String.valueOf(tileY)+"]");
+					}
+					else if(data.length == 4 && data[2].equals("square")) {
 						int radius = Integer.parseInt(data[3]);
 						
 						tilesHighlightManager._addData(radius);
@@ -253,7 +272,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		mobs = Boolean.valueOf(properties.getProperty("mobs", Boolean.toString(mobs)));
 		specials = Boolean.valueOf(properties.getProperty("specials", Boolean.toString(specials)));
 		uniques = Boolean.valueOf(properties.getProperty("uniques", Boolean.toString(uniques)));
-		champions = Boolean.valueOf(properties.getProperty("champions", Boolean.toString(champions)));
+		conditioned = Boolean.valueOf(properties.getProperty("conditioned", Boolean.toString(conditioned)));
 		tilescloseby = Boolean.valueOf(properties.getProperty("tilescloseby", Boolean.toString(tilescloseby)));
 		deedsize = Boolean.valueOf(properties.getProperty("deedsize", Boolean.toString(deedsize)));
 		xray = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xray)));
@@ -261,6 +280,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
 		xraydiameter = Integer.parseInt(properties.getProperty("xraydiameter", Integer.toString(xraydiameter)));
 		xrayrefreshrate = Integer.parseInt(properties.getProperty("xrayrefreshrate", Integer.toString(xrayrefreshrate)));
+		tilenotrideable = Integer.parseInt(properties.getProperty("tilenotrideable", Integer.toString(tilenotrideable)));
 		//serversize = Integer.parseInt(properties.getProperty("serversize", Integer.toString(serversize)));
 
 		Unit.colorPlayers = colorStringToFloatA(
@@ -274,8 +294,8 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				properties.getProperty("colorSpecials", colorFloatAToString(Unit.colorSpecials)));
 		Unit.colorUniques = colorStringToFloatA(
 				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
-		Unit.colorChampions = colorStringToFloatA(
-				properties.getProperty("colorChampions", colorFloatAToString(Unit.colorChampions)));
+		Unit.colorConditioned = colorStringToFloatA(
+				properties.getProperty("colorConditioned", colorFloatAToString(Unit.colorConditioned)));
 		
 		String oreColorOreIron = properties.getProperty("oreColorOreIron", "default");
 		if(!oreColorOreIron.equals("default"))
@@ -411,6 +431,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		Unit.aggroMOBS = properties.getProperty("aggroMOBS").split(";");
 		Unit.uniqueMOBS = properties.getProperty("uniqueMOBS").split(";");
 		Unit.specialITEMS = properties.getProperty("specialITEMS").split(";");
+		Unit.conditionedMOBS = properties.getProperty("conditionedMOBS").split(";");
 
 		logger.log(Level.INFO, "Config loaded");
 	}
@@ -422,11 +443,13 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 		try {
 			xrayManager = new XRayManager();
-			tilesManager = new TilesCloseByManager();
+			tilesCloseByManager = new TilesCloseByManager();
 			tilesHighlightManager = new TilesHighlightManager();
-			cronoManager = new CronoManager(xrayrefreshrate*1000);
-			tilesCronoManager = new CronoManager(1000);
+			tilesCloseByWalkableManager = new TilesWalkableManager();
+			xrayCronoManager = new CronoManager(xrayrefreshrate*1000);
+			tilesCloseByCronoManager = new CronoManager(1000);
 			tilesHighlightCronoManager = new CronoManager(5000);
+			tilesCloseByWalkableCronoManager = new CronoManager(1000);
 			
 			ClassPool classPool = HookManager.getInstance().getClassPool();
 
@@ -462,10 +485,10 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						Queue queuePick = ReflectionUtil.getPrivateField(proxy,
 								ReflectionUtil.getField(cls, "queuePick"));
-
+						
 						for (Unit unit : this.pickableUnits) {
 							if ((players && unit.isPlayer()) || (uniques && unit.isUnique())
-									|| (champions && unit.isChampion()) || (mobs && unit.isMob())
+									|| (conditioned && unit.isConditioned()) || (mobs && unit.isMob())
 									|| (specials && unit.isSpecial())) {
 								unit.renderUnit(queuePick);
 							}
@@ -497,27 +520,51 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 							tilesHighlightManager._setW(world);
 						}
 						if (tilescloseby && world.getPlayer().getPos().getLayer() >= 0) {
-							tilesManager._setWQ(world,queuePick);
+							tilesCloseByManager._setWQ(world,queuePick);
 							
-							if(tilesManager._first)
+							if(tilesCloseByManager._first)
 							{ 
-								tilesManager._refreshData();
-								tilesManager._first = false;
+								tilesCloseByManager._refreshData();
+								tilesCloseByManager._first = false;
 							}
-							else if(tilesCronoManager.hasEnded())
+							else if(tilesCloseByCronoManager.hasEnded())
 							{
-								tilesManager._refreshData();
-								tilesCronoManager.restart(1000);
+								tilesCloseByManager._refreshData();
+								tilesCloseByCronoManager.restart(1000);
 							}
 							
 							
 							Thread tilesThread = new Thread(() -> {
-								tilesManager._queueTiles();
+								tilesCloseByManager._queueTiles();
 							});
 							
 							tilesThread.setPriority(Thread.MAX_PRIORITY);
 							
 							tilesThread.start();
+						}
+						if(tilesclosebynotrideable && world.getPlayer().getPos().getLayer() >= 0)
+						{
+							tilesCloseByWalkableManager._setWQ(world, queuePick);
+							
+							if(tilesCloseByWalkableManager._first)
+							{ 
+								tilesCloseByWalkableManager._refreshData();
+								tilesCloseByWalkableManager._first = false;
+							}
+							else if(tilesCloseByWalkableCronoManager.hasEnded())
+							{
+								tilesCloseByWalkableManager._refreshData();
+								tilesCloseByWalkableCronoManager.restart(1000);
+							}
+							
+							
+							Thread tilesWalkableThread = new Thread(() -> {
+								tilesCloseByWalkableManager._queueTiles();
+							});
+							
+							tilesWalkableThread.setPriority(Thread.MAX_PRIORITY);
+							
+							tilesWalkableThread.start();
 						}
 						if (xray && world.getPlayer().getPos().getLayer() < 0) {
 							xrayManager._setWQ(world,queuePick);
@@ -540,7 +587,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 								}
 								xrayManager._first = false;
 							}
-							else if(cronoManager.hasEnded())
+							else if(xrayCronoManager.hasEnded())
 							{
 								if(xrayrefreshthread)
 								{
@@ -556,7 +603,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 								{
 									xrayManager._refreshData();
 								}
-								cronoManager.restart(xrayrefreshrate*1000);
+								xrayCronoManager.restart(xrayrefreshrate*1000);
 							}
 							
 							
@@ -713,10 +760,8 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	@SuppressWarnings("unchecked")
 	private void initEspWR() {
 		try {
-			World world = (World) ReflectionUtil.getPrivateField(hud, ReflectionUtil.getField(hud.getClass(), "world"));
-
-			WurmEspWindow wurmEspWindow = new WurmEspWindow(world);
-
+			WurmEspWindow wurmEspWindow = new WurmEspWindow();
+			
 			MainMenu mainMenu = (MainMenu) ReflectionUtil.getPrivateField(hud,
 					ReflectionUtil.getField(hud.getClass(), "mainMenu"));
 			mainMenu.registerComponent("Esp", wurmEspWindow);

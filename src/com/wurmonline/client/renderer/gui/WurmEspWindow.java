@@ -1,146 +1,127 @@
 package com.wurmonline.client.renderer.gui;
 
-import com.wurmonline.client.game.World;
-
 import net.encode.wurmesp.WurmEspMod;
 
 public class WurmEspWindow extends WWindow{
 	private WurmBorderPanel mainPanel;
-	private float[] red = {1.0f,0.0f,0.0f};
-    private float[] green = {0.0f,1.0f,0.0f};
-    
-	public WurmEspWindow(World world)
+	
+	public WurmEspWindow()
 	{
 		super("Esp", true);
 	    setTitle("Esp");
 	    this.resizable = true;
 	    this.closeable = true;
-	    setInitialSize(85, 128, true);
+	    //setInitialSize(85, 128, true);
+	    setInitialSize(100, 300, true);
 	    this.mainPanel = new WurmBorderPanel("Esp");
 	    
-	    WurmArrayPanel<WButton> buttons = new WurmArrayPanel<WButton>("Esp buttons", 0);
-	    //------------------------------------------
-	    WButton button = new WButton(WurmEspMod.players ? "Players On" : "Players Off", new ButtonListener()
-	    {
-	        public void buttonPressed(WButton p0) {}
-	        
-	        public void buttonClicked(WButton p0)
-	        {
-	        	WurmEspMod.players = !WurmEspMod.players;
-	        	p0.label = WurmEspMod.players ? "Players On" : "Players Off";
-	        	setWButtonStateColor(p0,WurmEspMod.players);
-	        }
-	    });
+	    WurmArrayPanel<EspWCheckBox> checkboxes = new WurmArrayPanel<EspWCheckBox>("Esp CheckBoxes", 0);
 	    
-	    setWButtonStateColor(button,WurmEspMod.players);
-	    buttons.addComponent(button);
 	    //------------------------------------------
-	    button = new WButton(WurmEspMod.mobs ? "Mobs On" : "Mobs Off", new ButtonListener()
-	    {
-	        public void buttonPressed(WButton p0) {}
-	        
-	        public void buttonClicked(WButton p0)
-	        {
-	        	WurmEspMod.mobs = !WurmEspMod.mobs;
-	        	p0.label = WurmEspMod.mobs ? "Mobs On" : "Mobs Off";
-	        	setWButtonStateColor(p0,WurmEspMod.mobs);
-	        }
+	    EspWCheckBox playersCheckBox = new EspWCheckBox("Players", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.players = checkbox.checked;
+			}
+	    	
 	    });
-	    
-	    setWButtonStateColor(button,WurmEspMod.mobs);
-	    buttons.addComponent(button);
-	    //------------------------------------------
-	    button = new WButton(WurmEspMod.specials ? "Specials On" : "Specials Off", new ButtonListener()
-	    {
-	        public void buttonPressed(WButton p0) {}
-	        
-	        public void buttonClicked(WButton p0)
-	        {
-	        	WurmEspMod.specials = !WurmEspMod.specials;
-	        	p0.label = WurmEspMod.specials ? "Specials On" : "Specials Off";
-	        	setWButtonStateColor(p0,WurmEspMod.specials);
-	        }
+	    playersCheckBox.checked = WurmEspMod.players;
+	  //------------------------------------------
+	    EspWCheckBox mobsCheckBox = new EspWCheckBox("Mobs", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.mobs = checkbox.checked;
+			}
+	    	
 	    });
-	    
-	    setWButtonStateColor(button,WurmEspMod.specials);
-	    buttons.addComponent(button);
-	    //------------------------------------------
-	    button = new WButton(WurmEspMod.uniques ? "Uniques On" : "Uniques Off", new ButtonListener()
-	    {
-	        public void buttonPressed(WButton p0) {}
-	        
-	        public void buttonClicked(WButton p0)
-	        {
-	        	WurmEspMod.uniques = !WurmEspMod.uniques;
-	        	p0.label = WurmEspMod.uniques ? "Uniques On" : "Uniques Off";
-	        	setWButtonStateColor(p0,WurmEspMod.uniques);
-	        }
+	    mobsCheckBox.checked = WurmEspMod.mobs;
+	  //------------------------------------------
+	    EspWCheckBox specialsCheckBox = new EspWCheckBox("Specials", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.specials = checkbox.checked;
+			}
+	    	
 	    });
-	    
-	    setWButtonStateColor(button,WurmEspMod.uniques);
-	    buttons.addComponent(button);
-	    //------------------------------------------
-	    button = new WButton(WurmEspMod.champions ? "Champions On" : "Champions Off", new ButtonListener()
-	    {
-	        public void buttonPressed(WButton p0) {}
-	        
-	        public void buttonClicked(WButton p0)
-	        {
-	        	WurmEspMod.champions = !WurmEspMod.champions;
-	        	p0.label = WurmEspMod.champions ? "Champions On" : "Champions Off";
-	        	setWButtonStateColor(p0,WurmEspMod.champions);
-	        }
+	    specialsCheckBox.checked = WurmEspMod.specials;
+	  //------------------------------------------
+	    EspWCheckBox uniquesCheckBox = new EspWCheckBox("Uniques", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.uniques = checkbox.checked;
+			}
+	    	
 	    });
+	    uniquesCheckBox.checked = WurmEspMod.uniques;
+	  //------------------------------------------
 	    
-	    setWButtonStateColor(button,WurmEspMod.champions);
-	    buttons.addComponent(button);
-	    //------------------------------------------
-	    button = new WButton(WurmEspMod.xray ? "Xray On" : "Xray Off", new ButtonListener()
-	    {
-	        public void buttonPressed(WButton p0) {}
-	        
-	        public void buttonClicked(WButton p0)
-	        {
-	        	WurmEspMod.xray = !WurmEspMod.xray;
-	        	p0.label = WurmEspMod.xray ? "Xray On" : "Xray Off";
-	        	setWButtonStateColor(p0,WurmEspMod.xray);
-	        }
+	    EspWCheckBox championsCheckBox = new EspWCheckBox("Conditioned", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.conditioned = checkbox.checked;
+			}
+	    	
 	    });
-	    
-	    setWButtonStateColor(button,WurmEspMod.xray);
-	    buttons.addComponent(button);
-	    //------------------------------------------
-	    button = new WButton(WurmEspMod.tilescloseby ? "Tiles On" : "Tiles Off", new ButtonListener()
-	    {
-	        public void buttonPressed(WButton p0) {}
-	        
-	        public void buttonClicked(WButton p0)
-	        {
-	        	WurmEspMod.tilescloseby = !WurmEspMod.tilescloseby;
-	        	p0.label = WurmEspMod.tilescloseby ? "Tiles On" : "Tiles Off";
-	        	setWButtonStateColor(p0,WurmEspMod.tilescloseby);
-	        }
+	    championsCheckBox.checked = WurmEspMod.conditioned;
+	  //------------------------------------------
+	    EspWCheckBox xrayCheckBox = new EspWCheckBox("Xray", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.xray = checkbox.checked;
+			}
+	    	
 	    });
-	    
-	    setWButtonStateColor(button,WurmEspMod.tilescloseby);
-	    buttons.addComponent(button);
-	    //------------------------------------------
-	    button = new WButton(WurmEspMod.deedsize ? "Deed On" : "Deed Off", new ButtonListener()
-	    {
-	        public void buttonPressed(WButton p0) {}
-	        
-	        public void buttonClicked(WButton p0)
-	        {
-	        	WurmEspMod.deedsize = !WurmEspMod.deedsize;
-	        	p0.label = WurmEspMod.deedsize ? "Deed On" : "Deed Off";
-	        	setWButtonStateColor(p0,WurmEspMod.deedsize);
-	        }
+	    xrayCheckBox.checked = WurmEspMod.xray;
+	  //------------------------------------------
+	    EspWCheckBox tilesCheckBox = new EspWCheckBox("Tiles", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.tilescloseby = checkbox.checked;
+			}
+	    	
 	    });
+	    tilesCheckBox.checked = WurmEspMod.tilesclosebynotrideable;
+	  //------------------------------------------
+	    EspWCheckBox tilesWalkableCheckBox = new EspWCheckBox("Rideable Tiles", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.tilesclosebynotrideable = checkbox.checked;
+			}
+	    	
+	    });
+	    tilesWalkableCheckBox.checked = WurmEspMod.tilescloseby;
+	  //------------------------------------------
+	    EspWCheckBox deedCheckBox = new EspWCheckBox("Deed", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.deedsize = checkbox.checked;
+			}
+	    	
+	    });
+	    deedCheckBox.checked = WurmEspMod.deedsize;
+	  //------------------------------------------
+	    checkboxes.addComponent(playersCheckBox);
+	    checkboxes.addComponent(mobsCheckBox);
+	    checkboxes.addComponent(specialsCheckBox);
+	    checkboxes.addComponent(uniquesCheckBox);
+	    checkboxes.addComponent(championsCheckBox);
+	    checkboxes.addComponent(xrayCheckBox);
+	    checkboxes.addComponent(tilesCheckBox);
+	    checkboxes.addComponent(tilesWalkableCheckBox);
+	    checkboxes.addComponent(deedCheckBox);
 	    
-	    setWButtonStateColor(button,WurmEspMod.deedsize);
-	    buttons.addComponent(button);
 	    //------------------------------------------
-	    this.mainPanel.setComponent(buttons, 1);
+	    
+	    this.mainPanel.setComponent(checkboxes, 1);
 	    setComponent(this.mainPanel);
 	}
 	
@@ -152,11 +133,5 @@ public class WurmEspWindow extends WWindow{
 	public void toggle()
 	{
 		hud.toggleComponent(this);
-	}
-	
-	private void setWButtonStateColor(WButton button, boolean state)
-	{
-		float[] colorText = state ? green : red;
-		button.setTextColor(colorText[0], colorText[1], colorText[2]);
 	}
 }
