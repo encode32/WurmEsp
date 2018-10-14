@@ -20,6 +20,7 @@ import org.gotti.wurmunlimited.modloader.interfaces.WurmClientMod;
 import com.wurmonline.client.comm.SimpleServerConnectionClass;
 import com.wurmonline.client.game.CaveDataBuffer;
 import com.wurmonline.client.game.NearTerrainDataBuffer;
+import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickRenderer;
@@ -170,7 +171,19 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						hud.consoleOutput("Planner data cleared.");
 						break;
 					}
-					if(data.length == 4 && data[2].equals("square")) {
+					else if(data.length == 3 && data[2].equals("tile"))
+					{
+						PlayerPosition pos = WurmEspMod.hud.getWorld().getPlayer().getPos();
+						int tileX = pos.getTileX();
+						int tileY = pos.getTileY();
+						
+						tilesHighlightManager._addData(tileX, tileY);
+						
+						tileshighlight = true;
+						
+						hud.consoleOutput("Added planner data. [TileX: "+String.valueOf(tileX)+"][tileY: "+String.valueOf(tileY)+"]");
+					}
+					else if(data.length == 4 && data[2].equals("square")) {
 						int radius = Integer.parseInt(data[3]);
 						
 						tilesHighlightManager._addData(radius);
