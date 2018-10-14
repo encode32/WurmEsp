@@ -46,17 +46,21 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	private List<Unit> pickableUnits = new ArrayList<Unit>();
 	private List<Unit> toRemove = new ArrayList<Unit>();
 	
-	private CronoManager cronoManager;
-	private CronoManager tilesCronoManager;
+	private CronoManager xrayCronoManager;
+	private CronoManager tilesCloseByCronoManager;
 	private CronoManager tilesHighlightCronoManager;
+	private CronoManager tilesCloseByWalkableCronoManager;
 	private XRayManager xrayManager;
-	private TilesCloseByManager tilesManager;
+	private TilesCloseByManager tilesCloseByManager;
 	public static TilesHighlightManager tilesHighlightManager;
+	private TilesWalkableManager tilesCloseByWalkableManager;
 	
 	public static CaveDataBuffer _caveBuffer = null;
 	public static NearTerrainDataBuffer _terrainBuffer = null;
+	public static NearTerrainDataBuffer _terrainBuffer2 = null;
 	public static List<float[]> _terrain = new ArrayList<float[]>();
 	public static List<float[]> _closeByTerrain = new ArrayList<float[]>();
+	public static List<float[]> _closeByWalkableTerrain = new ArrayList<float[]>();
 	public static List<int[]> _tilesHighlightBase = new ArrayList<int[]>();
 	public static List<float[]> _tilesHighlightTerrain = new ArrayList<float[]>();
 	//public static List<float[]> _oreql = new ArrayList<float[]>();
@@ -76,11 +80,13 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean tilescloseby = false;
 	public static boolean deedsize = false;
 	public static boolean tileshighlight = false;
+	public static boolean tilesclosebynotrideable = false;
 	public static boolean xray = false;
 	public static boolean xraythread = true;
 	public static boolean xrayrefreshthread = true;
 	public static int xraydiameter = 32;
 	public static int xrayrefreshrate = 5;
+	public static int tilenotrideable = 40;
 	/*
 	public static boolean xrayshowql = true;
 	public static int xrayqldiameter = 6;
@@ -274,6 +280,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
 		xraydiameter = Integer.parseInt(properties.getProperty("xraydiameter", Integer.toString(xraydiameter)));
 		xrayrefreshrate = Integer.parseInt(properties.getProperty("xrayrefreshrate", Integer.toString(xrayrefreshrate)));
+		tilenotrideable = Integer.parseInt(properties.getProperty("tilenotrideable", Integer.toString(tilenotrideable)));
 		//serversize = Integer.parseInt(properties.getProperty("serversize", Integer.toString(serversize)));
 
 		Unit.colorPlayers = colorStringToFloatA(
@@ -436,11 +443,13 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 		try {
 			xrayManager = new XRayManager();
-			tilesManager = new TilesCloseByManager();
+			tilesCloseByManager = new TilesCloseByManager();
 			tilesHighlightManager = new TilesHighlightManager();
-			cronoManager = new CronoManager(xrayrefreshrate*1000);
-			tilesCronoManager = new CronoManager(1000);
+			tilesCloseByWalkableManager = new TilesWalkableManager();
+			xrayCronoManager = new CronoManager(xrayrefreshrate*1000);
+			tilesCloseByCronoManager = new CronoManager(1000);
 			tilesHighlightCronoManager = new CronoManager(5000);
+			tilesCloseByWalkableCronoManager = new CronoManager(1000);
 			
 			ClassPool classPool = HookManager.getInstance().getClassPool();
 
@@ -511,27 +520,51 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 							tilesHighlightManager._setW(world);
 						}
 						if (tilescloseby && world.getPlayer().getPos().getLayer() >= 0) {
-							tilesManager._setWQ(world,queuePick);
+							tilesCloseByManager._setWQ(world,queuePick);
 							
-							if(tilesManager._first)
+							if(tilesCloseByManager._first)
 							{ 
-								tilesManager._refreshData();
-								tilesManager._first = false;
+								tilesCloseByManager._refreshData();
+								tilesCloseByManager._first = false;
 							}
-							else if(tilesCronoManager.hasEnded())
+							else if(tilesCloseByCronoManager.hasEnded())
 							{
-								tilesManager._refreshData();
-								tilesCronoManager.restart(1000);
+								tilesCloseByManager._refreshData();
+								tilesCloseByCronoManager.restart(1000);
 							}
 							
 							
 							Thread tilesThread = new Thread(() -> {
-								tilesManager._queueTiles();
+								tilesCloseByManager._queueTiles();
 							});
 							
 							tilesThread.setPriority(Thread.MAX_PRIORITY);
 							
 							tilesThread.start();
+						}
+						if(tilesclosebynotrideable && world.getPlayer().getPos().getLayer() >= 0)
+						{
+							tilesCloseByWalkableManager._setWQ(world, queuePick);
+							
+							if(tilesCloseByWalkableManager._first)
+							{ 
+								tilesCloseByWalkableManager._refreshData();
+								tilesCloseByWalkableManager._first = false;
+							}
+							else if(tilesCloseByWalkableCronoManager.hasEnded())
+							{
+								tilesCloseByWalkableManager._refreshData();
+								tilesCloseByWalkableCronoManager.restart(1000);
+							}
+							
+							
+							Thread tilesWalkableThread = new Thread(() -> {
+								tilesCloseByWalkableManager._queueTiles();
+							});
+							
+							tilesWalkableThread.setPriority(Thread.MAX_PRIORITY);
+							
+							tilesWalkableThread.start();
 						}
 						if (xray && world.getPlayer().getPos().getLayer() < 0) {
 							xrayManager._setWQ(world,queuePick);
@@ -554,7 +587,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 								}
 								xrayManager._first = false;
 							}
-							else if(cronoManager.hasEnded())
+							else if(xrayCronoManager.hasEnded())
 							{
 								if(xrayrefreshthread)
 								{
@@ -570,7 +603,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 								{
 									xrayManager._refreshData();
 								}
-								cronoManager.restart(xrayrefreshrate*1000);
+								xrayCronoManager.restart(xrayrefreshrate*1000);
 							}
 							
 							

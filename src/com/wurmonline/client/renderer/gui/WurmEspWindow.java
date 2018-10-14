@@ -87,7 +87,17 @@ public class WurmEspWindow extends WWindow{
 			}
 	    	
 	    });
-	    tilesCheckBox.checked = WurmEspMod.tilescloseby;
+	    tilesCheckBox.checked = WurmEspMod.tilesclosebynotrideable;
+	  //------------------------------------------
+	    EspWCheckBox tilesWalkableCheckBox = new EspWCheckBox("Rideable Tiles", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.tilesclosebynotrideable = checkbox.checked;
+			}
+	    	
+	    });
+	    tilesWalkableCheckBox.checked = WurmEspMod.tilescloseby;
 	  //------------------------------------------
 	    EspWCheckBox deedCheckBox = new EspWCheckBox("Deed", new CheckBoxListener() {
 
@@ -106,6 +116,7 @@ public class WurmEspWindow extends WWindow{
 	    checkboxes.addComponent(championsCheckBox);
 	    checkboxes.addComponent(xrayCheckBox);
 	    checkboxes.addComponent(tilesCheckBox);
+	    checkboxes.addComponent(tilesWalkableCheckBox);
 	    checkboxes.addComponent(deedCheckBox);
 	    
 	    //------------------------------------------
