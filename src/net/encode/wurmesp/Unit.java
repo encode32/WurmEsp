@@ -128,6 +128,10 @@ public class Unit {
 			{
 				return true;
 			}
+			if(this.getModelName().contains(WurmEspMod.search))
+			{
+				return true;
+			}
 		}
 		if(WurmEspMod.searchType == SEARCHTYPE.HOVER)
 		{
