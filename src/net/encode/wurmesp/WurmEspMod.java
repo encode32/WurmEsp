@@ -26,23 +26,28 @@ import com.wurmonline.client.renderer.GroundItemData;
 import com.wurmonline.client.renderer.PickRenderer;
 import com.wurmonline.client.renderer.PickableUnit;
 import com.wurmonline.client.renderer.backend.Queue;
+import com.wurmonline.client.renderer.cell.CellRenderable;
 import com.wurmonline.client.renderer.cell.CreatureCellRenderable;
 import com.wurmonline.client.renderer.gui.HeadsUpDisplay;
 import com.wurmonline.client.renderer.gui.MainMenu;
 import com.wurmonline.client.renderer.gui.WurmComponent;
 import com.wurmonline.client.renderer.gui.WurmEspWindow;
 import com.wurmonline.client.settings.SavePosManager;
+import com.wurmonline.client.sound.FixedSoundSource;
+import com.wurmonline.client.sound.SoundSource;
 import com.wurmonline.mesh.Tiles;
 
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
+import net.encode.wurmesp.util.ConfigUtils;
 
 public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configurable {
 	public static HeadsUpDisplay hud;
 
 	public static Logger logger = Logger.getLogger("WurmEspMod");
+	public static Properties modProperties = new Properties();
 	private List<Unit> pickableUnits = new ArrayList<Unit>();
 	private List<Unit> toRemove = new ArrayList<Unit>();
 	
@@ -87,12 +92,13 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static int xraydiameter = 32;
 	public static int xrayrefreshrate = 5;
 	public static int tilenotrideable = 40;
+	public static boolean playsoundfind = true;
+	public static String soundfind = "sound.fx.conch";
 	/*
 	public static boolean xrayshowql = true;
 	public static int xrayqldiameter = 6;
 	public static int serversize = 1024;
 	*/
-	
 	public static PickRenderer _pickRenderer;
 
 	public static boolean handleInput(final String cmd, final String[] data) {
@@ -142,8 +148,13 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 					hud.consoleOutput("Usage: esp planner tile <tileX> <tileY>");
 					hud.consoleOutput("Usage: esp planner clear");
 					break;
+				case "reload":
+					ConfigUtils.loadProperties("wurmesp");
+					DoConfig(modProperties);
+					hud.consoleOutput("[WurmEspMod] Config Reloaded");
+					break;
 				default:
-					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|conditioned|xray|tilescloseby|deedsize}");
+					hud.consoleOutput("Usage: esp {players|mobs|specials|uniques|conditioned|xray|tilescloseby|deedsize|reload}");
 				}
 				return true;
 			} else if (data.length > 2) {
@@ -253,14 +264,14 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		return false;
 	}
 
-	private float[] colorStringToFloatA(String color) {
+	private static float[] colorStringToFloatA(String color) {
 		String[] colors = color.split(",");
 		float[] colorf = { Float.valueOf(colors[0]) / 255.0f, Float.valueOf(colors[1]) / 255.0f,
 				Float.valueOf(colors[2]) / 255.0f };
 		return colorf;
 	}
 
-	private String colorFloatAToString(float[] color) {
+	private static String colorFloatAToString(float[] color) {
 		String colors = String.valueOf(color[0] * 255.0f) + "," + String.valueOf(color[1] * 255.0f) + ","
 				+ String.valueOf(color[2] * 255.0f);
 		return colors;
@@ -268,178 +279,16 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	
 	@Override
 	public void configure(Properties properties) {
-		players = Boolean.valueOf(properties.getProperty("players", Boolean.toString(players)));
-		mobs = Boolean.valueOf(properties.getProperty("mobs", Boolean.toString(mobs)));
-		specials = Boolean.valueOf(properties.getProperty("specials", Boolean.toString(specials)));
-		uniques = Boolean.valueOf(properties.getProperty("uniques", Boolean.toString(uniques)));
-		conditioned = Boolean.valueOf(properties.getProperty("conditioned", Boolean.toString(conditioned)));
-		tilescloseby = Boolean.valueOf(properties.getProperty("tilescloseby", Boolean.toString(tilescloseby)));
-		deedsize = Boolean.valueOf(properties.getProperty("deedsize", Boolean.toString(deedsize)));
-		xray = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xray)));
-		xraythread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xraythread)));
-		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
-		xraydiameter = Integer.parseInt(properties.getProperty("xraydiameter", Integer.toString(xraydiameter)));
-		xrayrefreshrate = Integer.parseInt(properties.getProperty("xrayrefreshrate", Integer.toString(xrayrefreshrate)));
-		tilenotrideable = Integer.parseInt(properties.getProperty("tilenotrideable", Integer.toString(tilenotrideable)));
-		//serversize = Integer.parseInt(properties.getProperty("serversize", Integer.toString(serversize)));
+		DoConfig(properties);
 
-		Unit.colorPlayers = colorStringToFloatA(
-				properties.getProperty("colorPlayers", colorFloatAToString(Unit.colorPlayers)));
-		Unit.colorPlayersEnemy = colorStringToFloatA(
-				properties.getProperty("colorPlayersEnemy", colorFloatAToString(Unit.colorPlayersEnemy)));
-		Unit.colorMobs = colorStringToFloatA(properties.getProperty("colorMobs", colorFloatAToString(Unit.colorMobs)));
-		Unit.colorMobsAggro = colorStringToFloatA(
-				properties.getProperty("colorMobsAggro", colorFloatAToString(Unit.colorMobsAggro)));
-		Unit.colorSpecials = colorStringToFloatA(
-				properties.getProperty("colorSpecials", colorFloatAToString(Unit.colorSpecials)));
-		Unit.colorUniques = colorStringToFloatA(
-				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
-		Unit.colorConditioned = colorStringToFloatA(
-				properties.getProperty("colorConditioned", colorFloatAToString(Unit.colorConditioned)));
-		
-		String oreColorOreIron = properties.getProperty("oreColorOreIron", "default");
-		if(!oreColorOreIron.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_IRON, colorStringToFloatA(oreColorOreIron));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_IRON, Color.RED.darker());
-		}
-		
-		String oreColorOreCopper = properties.getProperty("oreColorOreCopper", "default");
-		if(!oreColorOreCopper.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_COPPER, colorStringToFloatA(oreColorOreCopper));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_COPPER, Color.GREEN);
-		}
-		
-		String oreColorOreTin = properties.getProperty("oreColorOreTin", "default");
-		if(!oreColorOreTin.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_TIN, colorStringToFloatA(oreColorOreTin));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_TIN, Color.GRAY);
-		}
-		
-		String oreColorOreGold = properties.getProperty("oreColorOreGold", "default");
-		if(!oreColorOreGold.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GOLD, colorStringToFloatA(oreColorOreGold));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GOLD, Color.YELLOW.darker());
-		}
-		
-		String oreColorOreAdamantine = properties.getProperty("oreColorOreAdamantine", "default");
-		if(!oreColorOreAdamantine.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ADAMANTINE, colorStringToFloatA(oreColorOreAdamantine));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ADAMANTINE, Color.CYAN);
-		}
-		
-		String oreColorOreGlimmersteel = properties.getProperty("oreColorOreGlimmersteel", "default");
-		if(!oreColorOreGlimmersteel.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GLIMMERSTEEL, colorStringToFloatA(oreColorOreGlimmersteel));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GLIMMERSTEEL, Color.YELLOW.brighter());
-		}
-		
-		String oreColorOreSilver = properties.getProperty("oreColorOreSilver", "default");
-		if(!oreColorOreSilver.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_SILVER, colorStringToFloatA(oreColorOreSilver));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_SILVER, Color.LIGHT_GRAY);
-		}
-		
-		String oreColorOreLead = properties.getProperty("oreColorOreLead", "default");
-		if(!oreColorOreLead.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_LEAD, colorStringToFloatA(oreColorOreLead));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_LEAD, Color.PINK.darker().darker());
-		}
-		
-		String oreColorOreZinc = properties.getProperty("oreColorOreZinc", "default");
-		if(!oreColorOreZinc.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, colorStringToFloatA(oreColorOreZinc));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, new Color(235, 235, 235));
-		}
-		
-		String oreColorSlate = properties.getProperty("oreColorSlate", "default");
-		if(!oreColorSlate.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, colorStringToFloatA(oreColorSlate));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, Color.BLACK);
-		}
-		
-		String oreColorMarble = properties.getProperty("oreColorMarble", "default");
-		if(!oreColorMarble.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, colorStringToFloatA(oreColorMarble));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, Color.WHITE);
-		}
-		
-		String oreColorSandstone = properties.getProperty("oreColorSandstone", "default");
-		if(!oreColorSandstone.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SANDSTONE, colorStringToFloatA(oreColorSandstone));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SANDSTONE, Color.YELLOW.darker().darker());
-		}
-		
-		String oreColorRocksalt = properties.getProperty("oreColorRocksalt", "default");
-		if(!oreColorRocksalt.equals("default"))
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, colorStringToFloatA(oreColorRocksalt));
-		}
-		else
-		{
-			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, Color.WHITE.darker());
-		}
-		
-
-		Unit.aggroMOBS = properties.getProperty("aggroMOBS").split(";");
-		Unit.uniqueMOBS = properties.getProperty("uniqueMOBS").split(";");
-		Unit.specialITEMS = properties.getProperty("specialITEMS").split(";");
-		Unit.conditionedMOBS = properties.getProperty("conditionedMOBS").split(";");
-
-		logger.log(Level.INFO, "Config loaded");
+		logger.log(Level.INFO, "[WurmEspMod] Config loaded");
 	}
 
 	@SuppressWarnings("unused")
 	@Override
 	public void init() {
-		logger.log(Level.INFO, "Initializing");
+		
+		logger.log(Level.INFO, "[WurmEspMod] Initializing");
 
 		try {
 			xrayManager = new XRayManager();
@@ -456,12 +305,12 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 			CtClass ctWurmConsole = classPool.getCtClass("com.wurmonline.client.console.WurmConsole");
 			ctWurmConsole.getMethod("handleDevInput", "(Ljava/lang/String;[Ljava/lang/String;)Z")
 					.insertBefore("if (net.encode.wurmesp.WurmEspMod.handleInput($1,$2)) return true;");
-			logger.log(Level.INFO, "Return inserted on handleDevInput");
+			logger.log(Level.INFO, "[WurmEspMod] Return inserted on handleDevInput");
 			
 			CtClass ctWurmArrow = classPool.getCtClass("com.wurmonline.client.renderer.cell.ProjectileCellRenderable");
 			CtMethod m = CtNewMethod.make("public void initialize() { return; }", ctWurmArrow);
 			ctWurmArrow.addMethod(m);
-			logger.log(Level.INFO, "Added method initialize on ProjectileCellRenderable");
+			logger.log(Level.INFO, "[WurmEspMod] Added method initialize on ProjectileCellRenderable");
 			
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.gui.HeadsUpDisplay", "init", "(II)V",
 					() -> (proxy, method, args) -> {
@@ -470,7 +319,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						this.initEspWR();
 						return null;
 					});
-			logger.log(Level.INFO, "HeadsUpDisplay.init hooked");
+			logger.log(Level.INFO, "[WurmEspMod] HeadsUpDisplay.init hooked");
 			
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.WorldRender", "renderPickedItem",
 					"(Lcom/wurmonline/client/renderer/backend/Queue;)V", () -> (proxy, method, args) -> {
@@ -625,30 +474,36 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						return null;
 					});
-			logger.log(Level.INFO, "WorldRender.renderPickedItem hooked");
+			logger.log(Level.INFO, "[WurmEspMod] WorldRender.renderPickedItem hooked");
 			
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.MobileModelRenderable",
 					"initialize", "()V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
 						
 						PickableUnit pUnit = (PickableUnit) proxy;
-
+						
 						Unit unit = new Unit(pUnit.getId(), pUnit, ((CreatureCellRenderable)proxy).getModelName().toString(),((CreatureCellRenderable)proxy).getHoverName());
 						
 						if (unit.isPlayer() || unit.isMob()) {
 							this.pickableUnits.add(unit);
 						} else if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
+							if(playsoundfind)
+							{
+								PlayerPosition pos = CellRenderable.world.getPlayer().getPos();
+								CellRenderable.world.getSoundEngine().play(soundfind, (SoundSource)new FixedSoundSource(pos.getX(), pos.getY(), 2.0f), 1.0f, 5.0f, 1.0f, false, false);
+							}
 						}
 						return null;
 					});
-			logger.log(Level.INFO, "MobileModelRenderable.initialize hooked");
+			logger.log(Level.INFO, "[WurmEspMod] MobileModelRenderable.initialize hooked");
 
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.MobileModelRenderable",
 					"removed", "(Z)V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
+						
 						PickableUnit item = (PickableUnit) proxy;
-
+						
 						for (Unit unit : pickableUnits) {
 							if (unit.getId() == item.getId()) {
 								toRemove.add(unit);
@@ -665,13 +520,14 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						return null;
 					});
-			logger.log(Level.INFO, "MobileModelRenderable.removed hooked");
+			logger.log(Level.INFO, "[WurmEspMod] MobileModelRenderable.removed hooked");
 
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.GroundItemCellRenderable",
 					"initialize", "()V", () -> (proxy, method, args) -> {
 						method.invoke(proxy, args);
 						Class<?> cls = proxy.getClass();
 						PickableUnit pUnit = (PickableUnit) proxy;
+						
 						GroundItemData item = ReflectionUtil.getPrivateField(proxy,
 								ReflectionUtil.getField(cls, "item"));
 						
@@ -679,10 +535,15 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
+							if(playsoundfind)
+							{
+								PlayerPosition pos = CellRenderable.world.getPlayer().getPos();
+								CellRenderable.world.getSoundEngine().play(soundfind, (SoundSource)new FixedSoundSource(pos.getX(), pos.getY(), 2.0f), 1.0f, 5.0f, 1.0f, false, false);
+							}
 						}
 						return null;
 					});
-			logger.log(Level.INFO, "GroundItemCellRenderable.initialize hooked");
+			logger.log(Level.INFO, "[WurmEspMod] GroundItemCellRenderable.initialize hooked");
 
 			HookManager.getInstance().registerHook("com.wurmonline.client.renderer.cell.GroundItemCellRenderable",
 					"removed", "(Z)V", () -> (proxy, method, args) -> {
@@ -707,7 +568,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						return null;
 					});
-			logger.log(Level.INFO, "GroundItemCellRenderable.removed hooked");
+			logger.log(Level.INFO, "[WurmEspMod] GroundItemCellRenderable.removed hooked");
 			
 			HookManager.getInstance().registerHook("com.wurmonline.client.comm.SimpleServerConnectionClass",
 					"reallyHandleCmdShowDeedPlan", "(Ljava/nio/ByteBuffer;)V", () -> (proxy, method, args) -> {
@@ -745,11 +606,11 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						}
 					    return null;
 					});
-			logger.log(Level.INFO, "SimpleServerConnectionClass.reallyHandleCmdShowDeedPlan hooked");
+			logger.log(Level.INFO, "[WurmEspMod] SimpleServerConnectionClass.reallyHandleCmdShowDeedPlan hooked");
 			
 			logger.fine("Loaded");
 		} catch (Throwable e) {
-			logger.log(Level.SEVERE, "Error loading mod", e.getMessage());
+			logger.log(Level.SEVERE, "Error loading WurmEspMod", e.getMessage());
 		}
 	}
 
@@ -786,4 +647,172 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		return 20 + r.nextInt(80);
 	}
 	*/
+	
+	public static void DoConfig(Properties properties) {
+		players = Boolean.valueOf(properties.getProperty("players", Boolean.toString(players)));
+		mobs = Boolean.valueOf(properties.getProperty("mobs", Boolean.toString(mobs)));
+		specials = Boolean.valueOf(properties.getProperty("specials", Boolean.toString(specials)));
+		uniques = Boolean.valueOf(properties.getProperty("uniques", Boolean.toString(uniques)));
+		conditioned = Boolean.valueOf(properties.getProperty("conditioned", Boolean.toString(conditioned)));
+		tilescloseby = Boolean.valueOf(properties.getProperty("tilescloseby", Boolean.toString(tilescloseby)));
+		deedsize = Boolean.valueOf(properties.getProperty("deedsize", Boolean.toString(deedsize)));
+		xray = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xray)));
+		xraythread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xraythread)));
+		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
+		xraydiameter = Integer.parseInt(properties.getProperty("xraydiameter", Integer.toString(xraydiameter)));
+		xrayrefreshrate = Integer.parseInt(properties.getProperty("xrayrefreshrate", Integer.toString(xrayrefreshrate)));
+		tilenotrideable = Integer.parseInt(properties.getProperty("tilenotrideable", Integer.toString(tilenotrideable)));
+		soundfind = properties.getProperty("soundfind", soundfind);
+		//serversize = Integer.parseInt(properties.getProperty("serversize", Integer.toString(serversize)));
+
+		Unit.colorPlayers = colorStringToFloatA(
+				properties.getProperty("colorPlayers", colorFloatAToString(Unit.colorPlayers)));
+		Unit.colorPlayersEnemy = colorStringToFloatA(
+				properties.getProperty("colorPlayersEnemy", colorFloatAToString(Unit.colorPlayersEnemy)));
+		Unit.colorMobs = colorStringToFloatA(properties.getProperty("colorMobs", colorFloatAToString(Unit.colorMobs)));
+		Unit.colorMobsAggro = colorStringToFloatA(
+				properties.getProperty("colorMobsAggro", colorFloatAToString(Unit.colorMobsAggro)));
+		Unit.colorSpecials = colorStringToFloatA(
+				properties.getProperty("colorSpecials", colorFloatAToString(Unit.colorSpecials)));
+		Unit.colorUniques = colorStringToFloatA(
+				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
+		Unit.colorConditioned = colorStringToFloatA(
+				properties.getProperty("colorConditioned", colorFloatAToString(Unit.colorConditioned)));
+		
+		String oreColorOreIron = properties.getProperty("oreColorOreIron", "default");
+		if(!oreColorOreIron.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_IRON, colorStringToFloatA(oreColorOreIron));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_IRON, Color.RED.darker());
+		}
+		
+		String oreColorOreCopper = properties.getProperty("oreColorOreCopper", "default");
+		if(!oreColorOreCopper.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_COPPER, colorStringToFloatA(oreColorOreCopper));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_COPPER, Color.GREEN);
+		}
+		
+		String oreColorOreTin = properties.getProperty("oreColorOreTin", "default");
+		if(!oreColorOreTin.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_TIN, colorStringToFloatA(oreColorOreTin));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_TIN, Color.GRAY);
+		}
+		
+		String oreColorOreGold = properties.getProperty("oreColorOreGold", "default");
+		if(!oreColorOreGold.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GOLD, colorStringToFloatA(oreColorOreGold));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GOLD, Color.YELLOW.darker());
+		}
+		
+		String oreColorOreAdamantine = properties.getProperty("oreColorOreAdamantine", "default");
+		if(!oreColorOreAdamantine.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ADAMANTINE, colorStringToFloatA(oreColorOreAdamantine));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ADAMANTINE, Color.CYAN);
+		}
+		
+		String oreColorOreGlimmersteel = properties.getProperty("oreColorOreGlimmersteel", "default");
+		if(!oreColorOreGlimmersteel.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GLIMMERSTEEL, colorStringToFloatA(oreColorOreGlimmersteel));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_GLIMMERSTEEL, Color.YELLOW.brighter());
+		}
+		
+		String oreColorOreSilver = properties.getProperty("oreColorOreSilver", "default");
+		if(!oreColorOreSilver.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_SILVER, colorStringToFloatA(oreColorOreSilver));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_SILVER, Color.LIGHT_GRAY);
+		}
+		
+		String oreColorOreLead = properties.getProperty("oreColorOreLead", "default");
+		if(!oreColorOreLead.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_LEAD, colorStringToFloatA(oreColorOreLead));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_LEAD, Color.PINK.darker().darker());
+		}
+		
+		String oreColorOreZinc = properties.getProperty("oreColorOreZinc", "default");
+		if(!oreColorOreZinc.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, colorStringToFloatA(oreColorOreZinc));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ORE_ZINC, new Color(235, 235, 235));
+		}
+		
+		String oreColorSlate = properties.getProperty("oreColorSlate", "default");
+		if(!oreColorSlate.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, colorStringToFloatA(oreColorSlate));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SLATE, Color.BLACK);
+		}
+		
+		String oreColorMarble = properties.getProperty("oreColorMarble", "default");
+		if(!oreColorMarble.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, colorStringToFloatA(oreColorMarble));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_MARBLE, Color.WHITE);
+		}
+		
+		String oreColorSandstone = properties.getProperty("oreColorSandstone", "default");
+		if(!oreColorSandstone.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SANDSTONE, colorStringToFloatA(oreColorSandstone));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_SANDSTONE, Color.YELLOW.darker().darker());
+		}
+		
+		String oreColorRocksalt = properties.getProperty("oreColorRocksalt", "default");
+		if(!oreColorRocksalt.equals("default"))
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, colorStringToFloatA(oreColorRocksalt));
+		}
+		else
+		{
+			XrayColors.addMapping(Tiles.Tile.TILE_CAVE_WALL_ROCKSALT, Color.WHITE.darker());
+		}
+		
+
+		Unit.aggroMOBS = properties.getProperty("aggroMOBS").split(";");
+		Unit.uniqueMOBS = properties.getProperty("uniqueMOBS").split(";");
+		Unit.specialITEMS = properties.getProperty("specialITEMS").split(";");
+		Unit.conditionedMOBS = properties.getProperty("conditionedMOBS").split(";");
+	}
 }
