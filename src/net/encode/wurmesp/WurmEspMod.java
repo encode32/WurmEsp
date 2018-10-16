@@ -80,6 +80,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean players = true;
 	public static boolean mobs = false;
 	public static boolean specials = true;
+	public static boolean items = true;
 	public static boolean uniques = true;
 	public static boolean conditioned = true;
 	public static boolean tilescloseby = false;
@@ -342,7 +343,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						for (Unit unit : this.pickableUnits) {
 							if ((players && unit.isPlayer()) || (uniques && unit.isUnique())
 									|| (conditioned && unit.isConditioned()) || (mobs && unit.isMob())
-									|| (specials && unit.isSpecial())) {
+									|| (specials && unit.isSpecial() || (items && unit.isSpotted()))) {
 								unit.renderUnit(queuePick);
 							}
 						}
@@ -675,6 +676,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		players = Boolean.valueOf(properties.getProperty("players", Boolean.toString(players)));
 		mobs = Boolean.valueOf(properties.getProperty("mobs", Boolean.toString(mobs)));
 		specials = Boolean.valueOf(properties.getProperty("specials", Boolean.toString(specials)));
+		items = Boolean.valueOf(properties.getProperty("items", Boolean.toString(items)));
 		uniques = Boolean.valueOf(properties.getProperty("uniques", Boolean.toString(uniques)));
 		conditioned = Boolean.valueOf(properties.getProperty("conditioned", Boolean.toString(conditioned)));
 		tilescloseby = Boolean.valueOf(properties.getProperty("tilescloseby", Boolean.toString(tilescloseby)));

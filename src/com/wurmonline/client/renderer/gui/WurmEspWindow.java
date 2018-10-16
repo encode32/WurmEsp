@@ -48,6 +48,16 @@ public class WurmEspWindow extends WWindow{
 	    });
 	    specialsCheckBox.checked = WurmEspMod.specials;
 	  //------------------------------------------
+	    EspWCheckBox itemsCheckBox = new EspWCheckBox("Items", new CheckBoxListener() {
+
+			@Override
+			public void checkboxClicked(EspWCheckBox checkbox) {
+				WurmEspMod.items = checkbox.checked;
+			}
+	    	
+	    });
+	    itemsCheckBox.checked = WurmEspMod.items;
+	  //------------------------------------------
 	    EspWCheckBox uniquesCheckBox = new EspWCheckBox("Uniques", new CheckBoxListener() {
 
 			@Override
@@ -112,6 +122,7 @@ public class WurmEspWindow extends WWindow{
 	    checkboxes.addComponent(playersCheckBox);
 	    checkboxes.addComponent(mobsCheckBox);
 	    checkboxes.addComponent(specialsCheckBox);
+	    checkboxes.addComponent(itemsCheckBox);
 	    checkboxes.addComponent(uniquesCheckBox);
 	    checkboxes.addComponent(championsCheckBox);
 	    checkboxes.addComponent(xrayCheckBox);
