@@ -24,6 +24,7 @@ public class Unit {
 	public static float[] colorMobs = {0.0f, 0.0f, 0.0f};
 	public static float[] colorMobsAggro = {0.0f, 0.0f, 0.0f};
 	public static float[] colorSpecials = {0.0f, 0.0f, 0.0f};
+	public static float[] colorSpotted = {0.0f, 0.0f, 0.0f};
 	public static float[] colorUniques = {0.0f, 0.0f, 0.0f};
 	public static float[] colorAlert = {0.0f, 0.0f, 0.0f};
 	public static float[] colorAngry = {0.0f, 0.0f, 0.0f};
@@ -43,6 +44,8 @@ public class Unit {
 	public static String[] uniqueMOBS;
 	
 	public static String[] specialITEMS;
+	
+	public static String[] spottedITEMS;
 	
 	public static String[] conditionedMOBS;
 	
@@ -136,6 +139,22 @@ public class Unit {
 	public boolean isSpecial()
 	{
 		for(String item : specialITEMS)
+		{
+			if(this.getHoverName().contains(item))
+			{
+				return true;
+			}
+			if(this.getModelName().contains(WurmEspMod.search))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isSpotted()
+	{
+		for(String item : spottedITEMS)
 		{
 			if(this.getHoverName().contains(item))
 			{
@@ -244,6 +263,10 @@ public class Unit {
 		else if(this.isSpecial())
 		{
 			this.color = colorSpecials;
+		}
+		else if(this.isSpotted())
+		{
+			this.color = colorSpotted;
 		}
 		else
 		{

@@ -92,8 +92,12 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static int xraydiameter = 32;
 	public static int xrayrefreshrate = 5;
 	public static int tilenotrideable = 40;
-	public static boolean playsoundfind = true;
-	public static String soundfind = "sound.fx.conch";
+	public static boolean playsoundspecial = true;
+	public static boolean playsounditem = true;
+	public static boolean playsoundunique = true;
+	public static String soundspecial = "sound.fx.conch";
+	public static String sounditem = "sound.fx.conch";
+	public static String soundunique = "sound.fx.conch";
 	/*
 	public static boolean xrayshowql = true;
 	public static int xrayqldiameter = 6;
@@ -486,12 +490,25 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						
 						if (unit.isPlayer() || unit.isMob()) {
 							this.pickableUnits.add(unit);
+							if(unit.isUnique())
+							{
+								if(playsoundunique)
+								{
+									playSound(soundunique);
+								}
+							}
 						} else if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
-							if(playsoundfind)
+							if(playsoundspecial)
 							{
-								PlayerPosition pos = CellRenderable.world.getPlayer().getPos();
-								CellRenderable.world.getSoundEngine().play(soundfind, (SoundSource)new FixedSoundSource(pos.getX(), pos.getY(), 2.0f), 1.0f, 5.0f, 1.0f, false, false);
+								playSound(soundspecial);
+							}
+						}else if(unit.isSpotted())
+						{
+							this.pickableUnits.add(unit);
+							if(playsounditem)
+							{
+								playSound(sounditem);
 							}
 						}
 						return null;
@@ -535,10 +552,16 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
-							if(playsoundfind)
+							if(playsoundspecial)
 							{
-								PlayerPosition pos = CellRenderable.world.getPlayer().getPos();
-								CellRenderable.world.getSoundEngine().play(soundfind, (SoundSource)new FixedSoundSource(pos.getX(), pos.getY(), 2.0f), 1.0f, 5.0f, 1.0f, false, false);
+								playSound(soundspecial);
+							}
+						}else if(unit.isSpotted())
+						{
+							this.pickableUnits.add(unit);
+							if(playsounditem)
+							{
+								playSound(sounditem);
 							}
 						}
 						return null;
@@ -657,12 +680,17 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		tilescloseby = Boolean.valueOf(properties.getProperty("tilescloseby", Boolean.toString(tilescloseby)));
 		deedsize = Boolean.valueOf(properties.getProperty("deedsize", Boolean.toString(deedsize)));
 		xray = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xray)));
-		xraythread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xraythread)));
-		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
+		xraythread = Boolean.valueOf(properties.getProperty("xraythread", Boolean.toString(xraythread)));
+		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xrayrefreshthread", Boolean.toString(xrayrefreshthread)));
 		xraydiameter = Integer.parseInt(properties.getProperty("xraydiameter", Integer.toString(xraydiameter)));
 		xrayrefreshrate = Integer.parseInt(properties.getProperty("xrayrefreshrate", Integer.toString(xrayrefreshrate)));
 		tilenotrideable = Integer.parseInt(properties.getProperty("tilenotrideable", Integer.toString(tilenotrideable)));
-		soundfind = properties.getProperty("soundfind", soundfind);
+		playsoundspecial = Boolean.valueOf(properties.getProperty("playsoundspecial", Boolean.toString(playsoundspecial)));
+		playsounditem = Boolean.valueOf(properties.getProperty("playsounditem", Boolean.toString(playsounditem)));
+		playsoundunique = Boolean.valueOf(properties.getProperty("playsoundunique", Boolean.toString(playsoundunique)));
+		soundspecial = properties.getProperty("soundspecial", soundspecial);
+		sounditem = properties.getProperty("sounditem", sounditem);
+		soundunique = properties.getProperty("soundunique", soundunique);
 		//serversize = Integer.parseInt(properties.getProperty("serversize", Integer.toString(serversize)));
 
 		Unit.colorPlayers = colorStringToFloatA(
@@ -674,6 +702,8 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				properties.getProperty("colorMobsAggro", colorFloatAToString(Unit.colorMobsAggro)));
 		Unit.colorSpecials = colorStringToFloatA(
 				properties.getProperty("colorSpecials", colorFloatAToString(Unit.colorSpecials)));
+		Unit.colorSpotted = colorStringToFloatA(
+				properties.getProperty("colorSpotted", colorFloatAToString(Unit.colorSpotted)));
 		Unit.colorUniques = colorStringToFloatA(
 				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
 		Unit.colorAlert = colorStringToFloatA(
@@ -835,6 +865,12 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		Unit.aggroMOBS = properties.getProperty("aggroMOBS").split(";");
 		Unit.uniqueMOBS = properties.getProperty("uniqueMOBS").split(";");
 		Unit.specialITEMS = properties.getProperty("specialITEMS").split(";");
+		Unit.spottedITEMS = properties.getProperty("spottedITEMS").split(";");
 		Unit.conditionedMOBS = properties.getProperty("conditionedMOBS").split(";");
+	}
+	
+	private void playSound(String sound) {
+		PlayerPosition pos = CellRenderable.world.getPlayer().getPos();
+		CellRenderable.world.getSoundEngine().play(sound, (SoundSource)new FixedSoundSource(pos.getX(), pos.getY(), 2.0f), 1.0f, 5.0f, 1.0f, false, false);
 	}
 }
