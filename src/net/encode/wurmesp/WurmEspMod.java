@@ -676,8 +676,30 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				properties.getProperty("colorSpecials", colorFloatAToString(Unit.colorSpecials)));
 		Unit.colorUniques = colorStringToFloatA(
 				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
-		Unit.colorConditioned = colorStringToFloatA(
-				properties.getProperty("colorConditioned", colorFloatAToString(Unit.colorConditioned)));
+		Unit.colorAlert = colorStringToFloatA(
+				properties.getProperty("colorAlert", colorFloatAToString(Unit.colorAlert)));
+		Unit.colorAngry = colorStringToFloatA(
+				properties.getProperty("colorAngry", colorFloatAToString(Unit.colorAngry)));
+		Unit.colorChampion = colorStringToFloatA(
+				properties.getProperty("colorChampion", colorFloatAToString(Unit.colorChampion)));
+		Unit.colorDiseased = colorStringToFloatA(
+				properties.getProperty("colorDiseased", colorFloatAToString(Unit.colorDiseased)));
+		Unit.colorFierce = colorStringToFloatA(
+				properties.getProperty("colorFierce", colorFloatAToString(Unit.colorFierce)));
+		Unit.colorGreenish = colorStringToFloatA(
+				properties.getProperty("colorGreenish", colorFloatAToString(Unit.colorGreenish)));
+		Unit.colorHardened = colorStringToFloatA(
+				properties.getProperty("colorHardened", colorFloatAToString(Unit.colorHardened)));
+		Unit.colorLurking = colorStringToFloatA(
+				properties.getProperty("colorLurking", colorFloatAToString(Unit.colorLurking)));
+		Unit.colorRaging = colorStringToFloatA(
+				properties.getProperty("colorRaging", colorFloatAToString(Unit.colorRaging)));
+		Unit.colorScared = colorStringToFloatA(
+				properties.getProperty("colorScared", colorFloatAToString(Unit.colorScared)));
+		Unit.colorSlow = colorStringToFloatA(
+				properties.getProperty("colorSlow", colorFloatAToString(Unit.colorSlow)));
+		Unit.colorSly = colorStringToFloatA(
+				properties.getProperty("colorSly", colorFloatAToString(Unit.colorSly)));
 		
 		String oreColorOreIron = properties.getProperty("oreColorOreIron", "default");
 		if(!oreColorOreIron.equals("default"))

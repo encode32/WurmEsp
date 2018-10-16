@@ -17,6 +17,7 @@ public class Unit {
 	private String hoverName;
 	private PickableUnit pickableUnit;
 	private float[] color;
+	private String condition;
 	
 	public static float[] colorPlayers = {0.0f, 0.0f, 0.0f};
 	public static float[] colorPlayersEnemy = {0.0f, 0.0f, 0.0f};
@@ -24,7 +25,18 @@ public class Unit {
 	public static float[] colorMobsAggro = {0.0f, 0.0f, 0.0f};
 	public static float[] colorSpecials = {0.0f, 0.0f, 0.0f};
 	public static float[] colorUniques = {0.0f, 0.0f, 0.0f};
-	public static float[] colorConditioned = {0.0f, 0.0f, 0.0f};
+	public static float[] colorAlert = {0.0f, 0.0f, 0.0f};
+	public static float[] colorAngry = {0.0f, 0.0f, 0.0f};
+	public static float[] colorChampion = {0.0f, 0.0f, 0.0f};
+	public static float[] colorDiseased = {0.0f, 0.0f, 0.0f};
+	public static float[] colorFierce = {0.0f, 0.0f, 0.0f};
+	public static float[] colorGreenish = {0.0f, 0.0f, 0.0f};
+	public static float[] colorHardened = {0.0f, 0.0f, 0.0f};
+	public static float[] colorLurking = {0.0f, 0.0f, 0.0f};
+	public static float[] colorRaging = {0.0f, 0.0f, 0.0f};
+	public static float[] colorScared = {0.0f, 0.0f, 0.0f};
+	public static float[] colorSlow = {0.0f, 0.0f, 0.0f};
+	public static float[] colorSly = {0.0f, 0.0f, 0.0f};
 	
 	public static String[] aggroMOBS;
 	
@@ -102,6 +114,7 @@ public class Unit {
 		{
 			if(this.getHoverName().contains(condition))
 			{
+				this.condition = condition;
 				return true;
 			}
 		}
@@ -177,7 +190,48 @@ public class Unit {
 		}
 		else if(this.isConditioned())
 		{
-			this.color = colorConditioned;
+			float[] color = new float[] {0.0f, 0.0f, 0.0f};
+			switch(this.condition) {
+				case "alert":
+					color = colorAlert;
+					break;
+				case "angry":
+					color = colorAngry;
+					break;
+				case "champion":
+					color = colorChampion;
+					break;
+				case "diseased":
+					color = colorDiseased;
+					break;
+				case "fierce":
+					color = colorFierce;
+					break;
+				case "greenish":
+					color = colorGreenish;
+					break;
+				case "hardened":
+					color = colorHardened;
+					break;
+				case "lurking":
+					color = colorLurking;
+					break;
+				case "raging":
+					color = colorRaging;
+					break;
+				case "scared":
+					color = colorScared;
+					break;
+				case "slow":
+					color = colorSlow;
+					break;
+				case "sly":
+					color = colorSly;
+					break;
+			}
+						
+			
+			this.color = color;
 		}
 		else if(this.isAggroMob())
 		{
