@@ -92,7 +92,7 @@ public class TilesWalkableManager {
 		if(check(tile[4],tile[10])) {sides++;}
 		if(check(tile[7],tile[10])) {sides++;}
 		if(check(tile[10],tile[1])) {sides+=2;}
-		return sides>1;
+		return sides>0;
 	}
 
 	private boolean check(float a, float b)
