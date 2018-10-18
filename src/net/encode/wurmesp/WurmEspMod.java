@@ -493,21 +493,21 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 							this.pickableUnits.add(unit);
 							if(unit.isUnique())
 							{
-								if(playsoundunique)
+								if(uniques && playsoundunique)
 								{
 									playSound(soundunique);
 								}
 							}
 						} else if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
-							if(playsoundspecial)
+							if(specials && playsoundspecial)
 							{
 								playSound(soundspecial);
 							}
 						}else if(unit.isSpotted())
 						{
 							this.pickableUnits.add(unit);
-							if(playsounditem)
+							if(items && playsounditem)
 							{
 								playSound(sounditem);
 							}
@@ -553,14 +553,14 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
-							if(playsoundspecial)
+							if(specials && playsoundspecial)
 							{
 								playSound(soundspecial);
 							}
 						}else if(unit.isSpotted())
 						{
 							this.pickableUnits.add(unit);
-							if(playsounditem)
+							if(items && playsounditem)
 							{
 								playSound(sounditem);
 							}
