@@ -5,6 +5,7 @@ import java.util.Iterator;
 import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.backend.Queue;
+import com.wurmonline.mesh.Tiles;
 
 import net.encode.wurmesp.util.RenderUtils;
 
@@ -47,10 +48,10 @@ public class TilesWalkableManager {
 				float nextX = (tileX + 1) * 4 - ox;
 				float nextY = (tileY + 1) * 4 - oy;
 
-				float x0 = curX + 0.1F;
-				float y0 = curY + 0.1F;
-				float x1 = nextX - 0.1F;
-				float y1 = nextY - 0.1F;
+				float x0 = curX + 0.2F;
+				float y0 = curY + 0.2F;
+				float x1 = nextX - 0.2F;
+				float y1 = nextY - 0.2F;
 				
 				float z0 = WurmEspMod._terrainBuffer2.getHeight((int)tileX, (int)tileY);
 				float z1 = WurmEspMod._terrainBuffer2.getHeight((int)tileX +1, (int)tileY);
@@ -77,7 +78,7 @@ public class TilesWalkableManager {
 			if(isNotRideable(t))
 			{
 				float[] color = new float[]{1.0F, 0.0F, 0.0F, 0.5F};
-				int[] indexdata = new int[] { 0, 3, 1, 2};
+				int[] indexdata = new int[] { 1, 0, 0, 2, 2, 3, 3, 1};
 				
 				RenderUtils.renderPrimitiveLines(4, t, indexdata, this._queuePick, color);
 			}
@@ -85,18 +86,24 @@ public class TilesWalkableManager {
 	}
 
 	private boolean isNotRideable(float[] tile) {
-		int sides = 0;
-		if(check(tile[1],tile[4])) {sides++;}
-		if(check(tile[1],tile[7])) {sides+=2;}
-		if(check(tile[4],tile[7])) {sides++;}
-		if(check(tile[4],tile[10])) {sides++;}
-		if(check(tile[7],tile[10])) {sides++;}
-		if(check(tile[10],tile[1])) {sides+=2;}
-		return sides>0;
+		return getTileSteepness(tile)[1] >= WurmEspMod.tilenotrideable;
 	}
-
-	private boolean check(float a, float b)
-	{
-		return Math.abs((a*10)-(b*10)) >= WurmEspMod.tilenotrideable;
-	}
+	
+	public static short[] getTileSteepness(float[] tile)
+	  {
+	    short highest = -100;
+	    short lowest = 32000;
+	    for (int i = 1; i <= 10; i+=3) {
+	    	  short height = 0;
+	          height = (short) (tile[i]*10);
+	          if (height > highest) {
+	            highest = height;
+	          }
+	          if (height < lowest) {
+	            lowest = height;
+	          }
+	      }
+	    int med = (highest + lowest) / 2;
+	    return new short[] { (short)med, (short)(highest - lowest) };
+	  }
 }
