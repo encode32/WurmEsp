@@ -87,11 +87,11 @@ public class TilesWalkableManager {
 	private boolean isNotRideable(float[] tile) {
 		int sides = 0;
 		if(check(tile[1],tile[4])) {sides++;}
-		if(check(tile[1],tile[7])) {sides+=2;}
+		if(check(tile[1],tile[7])) {sides++;}
 		if(check(tile[4],tile[7])) {sides++;}
 		if(check(tile[4],tile[10])) {sides++;}
 		if(check(tile[7],tile[10])) {sides++;}
-		if(check(tile[10],tile[1])) {sides+=2;}
+		if(check(tile[10],tile[1])) {sides++;}
 		return sides>1;
 	}
 
