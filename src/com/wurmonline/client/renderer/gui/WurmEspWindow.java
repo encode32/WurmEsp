@@ -132,7 +132,7 @@ public class WurmEspWindow extends WWindow{
 	    
 	    //------------------------------------------
 	    
-	    this.mainPanel.setComponent(checkboxes, 1);
+	    this.mainPanel.setComponent(checkboxes, 0);
 	    setComponent(this.mainPanel);
 	}
 	

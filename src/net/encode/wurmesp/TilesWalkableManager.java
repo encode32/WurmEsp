@@ -5,7 +5,6 @@ import java.util.Iterator;
 import com.wurmonline.client.game.PlayerPosition;
 import com.wurmonline.client.game.World;
 import com.wurmonline.client.renderer.backend.Queue;
-import com.wurmonline.mesh.Tiles;
 
 import net.encode.wurmesp.util.RenderUtils;
 
