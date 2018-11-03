@@ -16,7 +16,8 @@ public class Unit {
 	private String modelName;
 	private String hoverName;
 	private PickableUnit pickableUnit;
-	private float[] color;
+	private float[] color = new float[]{0.0f,0.0f,0.0f};
+	private float[] conditionedcolor = new float[]{0.0f,0.0f,0.0f};
 	private String condition;
 	
 	public static float[] colorPlayers = {0.0f, 0.0f, 0.0f};
@@ -72,6 +73,11 @@ public class Unit {
 	public float[] getColor()
 	{
 		return this.color;
+	}
+	
+	public float[] getConditionedColor()
+	{
+		return this.conditionedcolor;
 	}
 	
 	public String getHoverName()
@@ -207,7 +213,23 @@ public class Unit {
 		{
 			this.color = colorUniques;
 		}
-		else if(this.isConditioned())
+		else if(this.isAggroMob())
+		{
+			this.color = colorMobsAggro;
+		}
+		else if(this.isMob())
+		{
+			this.color = colorMobs;
+		}
+		else if(this.isSpecial())
+		{
+			this.color = colorSpecials;
+		}
+		else if(this.isSpotted())
+		{
+			this.color = colorSpotted;
+		}
+		if(this.isConditioned())
 		{
 			float[] color = new float[] {0.0f, 0.0f, 0.0f};
 			switch(this.condition) {
@@ -250,36 +272,11 @@ public class Unit {
 			}
 						
 			
-			this.color = color;
-		}
-		else if(this.isAggroMob())
-		{
-			this.color = colorMobsAggro;
-		}
-		else if(this.isMob())
-		{
-			this.color = colorMobs;
-		}
-		else if(this.isSpecial())
-		{
-			this.color = colorSpecials;
-		}
-		else if(this.isSpotted())
-		{
-			this.color = colorSpotted;
-		}
-		else
-		{
-			this.color = new float[]{0.0f,0.0f,0.0f};
+			this.conditionedcolor = color;
 		}
 	}
 	
-	public void renderUnit(Queue queue)
-	{
-		this.render(queue);
-	}
-	
-	private void render(Queue queue) {
+	public void renderUnit(Queue queue, boolean showconditioned) {
 		if (this.pickableUnit == null) {
 			return;
 		}
@@ -290,7 +287,14 @@ public class Unit {
 	    RenderState renderStateFillDepth = new RenderState();
 	    RenderState renderStateOutline = new RenderState();
 	    Color color = new Color();
-	    color.set(this.color[0], this.color[1], this.color[2]);
+	    if(this.isConditioned() && showconditioned)
+	    {
+	    	color.set(this.conditionedcolor[0], this.conditionedcolor[1], this.conditionedcolor[2]);
+	    }
+	    else
+	    {
+	    	color.set(this.color[0], this.color[1], this.color[2]);
+	    }
 	    
 	    color.a = br;
 	    
