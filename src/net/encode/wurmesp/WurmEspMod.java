@@ -100,6 +100,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static String sounditem = "sound.fx.conch";
 	public static String soundunique = "sound.fx.conch";
 	public static boolean conditionedcolorsallways = false;
+	public static boolean championmcoloralways = false;
 	/*
 	public static boolean xrayshowql = true;
 	public static int xrayqldiameter = 6;
@@ -345,7 +346,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 							if ((players && unit.isPlayer()) || (uniques && unit.isUnique())
 									|| (conditioned && unit.isConditioned()) || (mobs && unit.isMob())
 									|| (specials && unit.isSpecial() || (items && unit.isSpotted()))) {
-								if((unit.isConditioned() && conditioned) || (unit.isConditioned() && conditionedcolorsallways))
+								if((unit.isConditioned() && conditioned) || (unit.isConditioned() && conditionedcolorsallways) || (unit.isChampion() && championmcoloralways))
 								{
 									unit.renderUnit(queuePick, true);
 								}
@@ -702,6 +703,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		sounditem = properties.getProperty("sounditem", sounditem);
 		soundunique = properties.getProperty("soundunique", soundunique);
 		conditionedcolorsallways = Boolean.valueOf(properties.getProperty("conditionedcolorsallways", Boolean.toString(conditionedcolorsallways)));
+		championmcoloralways = Boolean.valueOf(properties.getProperty("championmcoloralways", Boolean.toString(championmcoloralways)));
 		//serversize = Integer.parseInt(properties.getProperty("serversize", Integer.toString(serversize)));
 
 		Unit.colorPlayers = colorStringToFloatA(

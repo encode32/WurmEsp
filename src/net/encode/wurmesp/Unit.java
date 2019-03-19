@@ -117,6 +117,14 @@ public class Unit {
 		return false;
 	}
 	
+	public boolean isChampion() {
+		if(this.getHoverName().contains("champion"))
+		{
+			return true;
+		}
+		return false;
+	}
+	
 	public boolean isConditioned()
 	{
 		for(String condition : conditionedMOBS)
