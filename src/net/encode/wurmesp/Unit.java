@@ -16,21 +16,37 @@ public class Unit {
 	private String modelName;
 	private String hoverName;
 	private PickableUnit pickableUnit;
-	private float[] color;
+	private float[] color = new float[]{0.0f,0.0f,0.0f};
+	private float[] conditionedcolor = new float[]{0.0f,0.0f,0.0f};
+	private String condition;
 	
 	public static float[] colorPlayers = {0.0f, 0.0f, 0.0f};
 	public static float[] colorPlayersEnemy = {0.0f, 0.0f, 0.0f};
 	public static float[] colorMobs = {0.0f, 0.0f, 0.0f};
 	public static float[] colorMobsAggro = {0.0f, 0.0f, 0.0f};
 	public static float[] colorSpecials = {0.0f, 0.0f, 0.0f};
+	public static float[] colorSpotted = {0.0f, 0.0f, 0.0f};
 	public static float[] colorUniques = {0.0f, 0.0f, 0.0f};
-	public static float[] colorConditioned = {0.0f, 0.0f, 0.0f};
+	public static float[] colorAlert = {0.0f, 0.0f, 0.0f};
+	public static float[] colorAngry = {0.0f, 0.0f, 0.0f};
+	public static float[] colorChampion = {0.0f, 0.0f, 0.0f};
+	public static float[] colorDiseased = {0.0f, 0.0f, 0.0f};
+	public static float[] colorFierce = {0.0f, 0.0f, 0.0f};
+	public static float[] colorGreenish = {0.0f, 0.0f, 0.0f};
+	public static float[] colorHardened = {0.0f, 0.0f, 0.0f};
+	public static float[] colorLurking = {0.0f, 0.0f, 0.0f};
+	public static float[] colorRaging = {0.0f, 0.0f, 0.0f};
+	public static float[] colorScared = {0.0f, 0.0f, 0.0f};
+	public static float[] colorSlow = {0.0f, 0.0f, 0.0f};
+	public static float[] colorSly = {0.0f, 0.0f, 0.0f};
 	
 	public static String[] aggroMOBS;
 	
 	public static String[] uniqueMOBS;
 	
 	public static String[] specialITEMS;
+	
+	public static String[] spottedITEMS;
 	
 	public static String[] conditionedMOBS;
 	
@@ -57,6 +73,11 @@ public class Unit {
 	public float[] getColor()
 	{
 		return this.color;
+	}
+	
+	public float[] getConditionedColor()
+	{
+		return this.conditionedcolor;
 	}
 	
 	public String getHoverName()
@@ -96,12 +117,21 @@ public class Unit {
 		return false;
 	}
 	
+	public boolean isChampion() {
+		if(this.getHoverName().contains("champion"))
+		{
+			return true;
+		}
+		return false;
+	}
+	
 	public boolean isConditioned()
 	{
 		for(String condition : conditionedMOBS)
 		{
 			if(this.getHoverName().contains(condition))
 			{
+				this.condition = condition;
 				return true;
 			}
 		}
@@ -123,6 +153,22 @@ public class Unit {
 	public boolean isSpecial()
 	{
 		for(String item : specialITEMS)
+		{
+			if(this.getHoverName().contains(item))
+			{
+				return true;
+			}
+			if(this.getModelName().contains(WurmEspMod.search))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isSpotted()
+	{
+		for(String item : spottedITEMS)
 		{
 			if(this.getHoverName().contains(item))
 			{
@@ -175,10 +221,6 @@ public class Unit {
 		{
 			this.color = colorUniques;
 		}
-		else if(this.isConditioned())
-		{
-			this.color = colorConditioned;
-		}
 		else if(this.isAggroMob())
 		{
 			this.color = colorMobsAggro;
@@ -191,18 +233,58 @@ public class Unit {
 		{
 			this.color = colorSpecials;
 		}
-		else
+		else if(this.isSpotted())
 		{
-			this.color = new float[]{0.0f,0.0f,0.0f};
+			this.color = colorSpotted;
+		}
+		if(this.isConditioned())
+		{
+			float[] color = new float[] {0.0f, 0.0f, 0.0f};
+			switch(this.condition) {
+				case "alert":
+					color = colorAlert;
+					break;
+				case "angry":
+					color = colorAngry;
+					break;
+				case "champion":
+					color = colorChampion;
+					break;
+				case "diseased":
+					color = colorDiseased;
+					break;
+				case "fierce":
+					color = colorFierce;
+					break;
+				case "greenish":
+					color = colorGreenish;
+					break;
+				case "hardened":
+					color = colorHardened;
+					break;
+				case "lurking":
+					color = colorLurking;
+					break;
+				case "raging":
+					color = colorRaging;
+					break;
+				case "scared":
+					color = colorScared;
+					break;
+				case "slow":
+					color = colorSlow;
+					break;
+				case "sly":
+					color = colorSly;
+					break;
+			}
+						
+			
+			this.conditionedcolor = color;
 		}
 	}
 	
-	public void renderUnit(Queue queue)
-	{
-		this.render(queue);
-	}
-	
-	private void render(Queue queue) {
+	public void renderUnit(Queue queue, boolean showconditioned) {
 		if (this.pickableUnit == null) {
 			return;
 		}
@@ -213,7 +295,14 @@ public class Unit {
 	    RenderState renderStateFillDepth = new RenderState();
 	    RenderState renderStateOutline = new RenderState();
 	    Color color = new Color();
-	    color.set(this.color[0], this.color[1], this.color[2]);
+	    if(this.isConditioned() && showconditioned)
+	    {
+	    	color.set(this.conditionedcolor[0], this.conditionedcolor[1], this.conditionedcolor[2]);
+	    }
+	    else
+	    {
+	    	color.set(this.color[0], this.color[1], this.color[2]);
+	    }
 	    
 	    color.a = br;
 	    

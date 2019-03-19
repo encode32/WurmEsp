@@ -80,6 +80,7 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static boolean players = true;
 	public static boolean mobs = false;
 	public static boolean specials = true;
+	public static boolean items = true;
 	public static boolean uniques = true;
 	public static boolean conditioned = true;
 	public static boolean tilescloseby = false;
@@ -92,8 +93,14 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 	public static int xraydiameter = 32;
 	public static int xrayrefreshrate = 5;
 	public static int tilenotrideable = 40;
-	public static boolean playsoundfind = true;
-	public static String soundfind = "sound.fx.conch";
+	public static boolean playsoundspecial = true;
+	public static boolean playsounditem = true;
+	public static boolean playsoundunique = true;
+	public static String soundspecial = "sound.fx.conch";
+	public static String sounditem = "sound.fx.conch";
+	public static String soundunique = "sound.fx.conch";
+	public static boolean conditionedcolorsallways = false;
+	public static boolean championmcoloralways = false;
 	/*
 	public static boolean xrayshowql = true;
 	public static int xrayqldiameter = 6;
@@ -338,8 +345,15 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						for (Unit unit : this.pickableUnits) {
 							if ((players && unit.isPlayer()) || (uniques && unit.isUnique())
 									|| (conditioned && unit.isConditioned()) || (mobs && unit.isMob())
-									|| (specials && unit.isSpecial())) {
-								unit.renderUnit(queuePick);
+									|| (specials && unit.isSpecial() || (items && unit.isSpotted()))) {
+								if((unit.isConditioned() && conditioned) || (unit.isConditioned() && conditionedcolorsallways) || (unit.isChampion() && championmcoloralways))
+								{
+									unit.renderUnit(queuePick, true);
+								}
+								else
+								{
+									unit.renderUnit(queuePick, false);
+								}
 							}
 						}
 						
@@ -486,12 +500,25 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 						
 						if (unit.isPlayer() || unit.isMob()) {
 							this.pickableUnits.add(unit);
+							if(unit.isUnique())
+							{
+								if(uniques && playsoundunique)
+								{
+									playSound(soundunique);
+								}
+							}
 						} else if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
-							if(playsoundfind)
+							if(specials && playsoundspecial)
 							{
-								PlayerPosition pos = CellRenderable.world.getPlayer().getPos();
-								CellRenderable.world.getSoundEngine().play(soundfind, (SoundSource)new FixedSoundSource(pos.getX(), pos.getY(), 2.0f), 1.0f, 5.0f, 1.0f, false, false);
+								playSound(soundspecial);
+							}
+						}else if(unit.isSpotted())
+						{
+							this.pickableUnits.add(unit);
+							if(items && playsounditem)
+							{
+								playSound(sounditem);
 							}
 						}
 						return null;
@@ -535,10 +562,16 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 
 						if (unit.isSpecial()) {
 							this.pickableUnits.add(unit);
-							if(playsoundfind)
+							if(specials && playsoundspecial)
 							{
-								PlayerPosition pos = CellRenderable.world.getPlayer().getPos();
-								CellRenderable.world.getSoundEngine().play(soundfind, (SoundSource)new FixedSoundSource(pos.getX(), pos.getY(), 2.0f), 1.0f, 5.0f, 1.0f, false, false);
+								playSound(soundspecial);
+							}
+						}else if(unit.isSpotted())
+						{
+							this.pickableUnits.add(unit);
+							if(items && playsounditem)
+							{
+								playSound(sounditem);
 							}
 						}
 						return null;
@@ -652,17 +685,25 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		players = Boolean.valueOf(properties.getProperty("players", Boolean.toString(players)));
 		mobs = Boolean.valueOf(properties.getProperty("mobs", Boolean.toString(mobs)));
 		specials = Boolean.valueOf(properties.getProperty("specials", Boolean.toString(specials)));
+		items = Boolean.valueOf(properties.getProperty("items", Boolean.toString(items)));
 		uniques = Boolean.valueOf(properties.getProperty("uniques", Boolean.toString(uniques)));
 		conditioned = Boolean.valueOf(properties.getProperty("conditioned", Boolean.toString(conditioned)));
 		tilescloseby = Boolean.valueOf(properties.getProperty("tilescloseby", Boolean.toString(tilescloseby)));
 		deedsize = Boolean.valueOf(properties.getProperty("deedsize", Boolean.toString(deedsize)));
 		xray = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xray)));
-		xraythread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xraythread)));
-		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xray", Boolean.toString(xrayrefreshthread)));
+		xraythread = Boolean.valueOf(properties.getProperty("xraythread", Boolean.toString(xraythread)));
+		xrayrefreshthread = Boolean.valueOf(properties.getProperty("xrayrefreshthread", Boolean.toString(xrayrefreshthread)));
 		xraydiameter = Integer.parseInt(properties.getProperty("xraydiameter", Integer.toString(xraydiameter)));
 		xrayrefreshrate = Integer.parseInt(properties.getProperty("xrayrefreshrate", Integer.toString(xrayrefreshrate)));
 		tilenotrideable = Integer.parseInt(properties.getProperty("tilenotrideable", Integer.toString(tilenotrideable)));
-		soundfind = properties.getProperty("soundfind", soundfind);
+		playsoundspecial = Boolean.valueOf(properties.getProperty("playsoundspecial", Boolean.toString(playsoundspecial)));
+		playsounditem = Boolean.valueOf(properties.getProperty("playsounditem", Boolean.toString(playsounditem)));
+		playsoundunique = Boolean.valueOf(properties.getProperty("playsoundunique", Boolean.toString(playsoundunique)));
+		soundspecial = properties.getProperty("soundspecial", soundspecial);
+		sounditem = properties.getProperty("sounditem", sounditem);
+		soundunique = properties.getProperty("soundunique", soundunique);
+		conditionedcolorsallways = Boolean.valueOf(properties.getProperty("conditionedcolorsallways", Boolean.toString(conditionedcolorsallways)));
+		championmcoloralways = Boolean.valueOf(properties.getProperty("championmcoloralways", Boolean.toString(championmcoloralways)));
 		//serversize = Integer.parseInt(properties.getProperty("serversize", Integer.toString(serversize)));
 
 		Unit.colorPlayers = colorStringToFloatA(
@@ -674,10 +715,34 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 				properties.getProperty("colorMobsAggro", colorFloatAToString(Unit.colorMobsAggro)));
 		Unit.colorSpecials = colorStringToFloatA(
 				properties.getProperty("colorSpecials", colorFloatAToString(Unit.colorSpecials)));
+		Unit.colorSpotted = colorStringToFloatA(
+				properties.getProperty("colorSpotted", colorFloatAToString(Unit.colorSpotted)));
 		Unit.colorUniques = colorStringToFloatA(
 				properties.getProperty("colorUniques", colorFloatAToString(Unit.colorUniques)));
-		Unit.colorConditioned = colorStringToFloatA(
-				properties.getProperty("colorConditioned", colorFloatAToString(Unit.colorConditioned)));
+		Unit.colorAlert = colorStringToFloatA(
+				properties.getProperty("colorAlert", colorFloatAToString(Unit.colorAlert)));
+		Unit.colorAngry = colorStringToFloatA(
+				properties.getProperty("colorAngry", colorFloatAToString(Unit.colorAngry)));
+		Unit.colorChampion = colorStringToFloatA(
+				properties.getProperty("colorChampion", colorFloatAToString(Unit.colorChampion)));
+		Unit.colorDiseased = colorStringToFloatA(
+				properties.getProperty("colorDiseased", colorFloatAToString(Unit.colorDiseased)));
+		Unit.colorFierce = colorStringToFloatA(
+				properties.getProperty("colorFierce", colorFloatAToString(Unit.colorFierce)));
+		Unit.colorGreenish = colorStringToFloatA(
+				properties.getProperty("colorGreenish", colorFloatAToString(Unit.colorGreenish)));
+		Unit.colorHardened = colorStringToFloatA(
+				properties.getProperty("colorHardened", colorFloatAToString(Unit.colorHardened)));
+		Unit.colorLurking = colorStringToFloatA(
+				properties.getProperty("colorLurking", colorFloatAToString(Unit.colorLurking)));
+		Unit.colorRaging = colorStringToFloatA(
+				properties.getProperty("colorRaging", colorFloatAToString(Unit.colorRaging)));
+		Unit.colorScared = colorStringToFloatA(
+				properties.getProperty("colorScared", colorFloatAToString(Unit.colorScared)));
+		Unit.colorSlow = colorStringToFloatA(
+				properties.getProperty("colorSlow", colorFloatAToString(Unit.colorSlow)));
+		Unit.colorSly = colorStringToFloatA(
+				properties.getProperty("colorSly", colorFloatAToString(Unit.colorSly)));
 		
 		String oreColorOreIron = properties.getProperty("oreColorOreIron", "default");
 		if(!oreColorOreIron.equals("default"))
@@ -813,6 +878,12 @@ public class WurmEspMod implements WurmClientMod, Initable, PreInitable, Configu
 		Unit.aggroMOBS = properties.getProperty("aggroMOBS").split(";");
 		Unit.uniqueMOBS = properties.getProperty("uniqueMOBS").split(";");
 		Unit.specialITEMS = properties.getProperty("specialITEMS").split(";");
+		Unit.spottedITEMS = properties.getProperty("spottedITEMS").split(";");
 		Unit.conditionedMOBS = properties.getProperty("conditionedMOBS").split(";");
+	}
+	
+	private void playSound(String sound) {
+		PlayerPosition pos = CellRenderable.world.getPlayer().getPos();
+		CellRenderable.world.getSoundEngine().play(sound, (SoundSource)new FixedSoundSource(pos.getX(), pos.getY(), 2.0f), 1.0f, 5.0f, 1.0f, false, false);
 	}
 }
